@@ -2,6 +2,7 @@ from . import Parsing
 from random import choice
 from functools import reduce
 from .colors import WHITE, BLACK, END, RED, BLUE, GREEN, MAGENTA, YELLOW, CYAN, ORANGE, BROWN
+from collections import deque
 
 class Cell:
     def __init__(self) -> None:
@@ -27,6 +28,7 @@ class MazeGenerator:
                 [CYAN, MAGENTA, YELLOW, YELLOW],
                 [GREEN, BLUE, RED, RED]
                 ]
+        self._path: list = []
 
     def get_unvisited(self, x: int, y: int) -> list[tuple[int, int]]:
         unvisited: list[tuple] = []
@@ -56,7 +58,7 @@ class MazeGenerator:
         self.grid[ny][nx].walls[opposite[direction]] = False
 
 
-    def render(self, wall_type: str = '█', color_mode: int = 0) -> None:
+    def render(self, wall_type: str = '█', color_mode: int = 0, show_path: bool = False) -> None:
         for y in range(len(self.grid)):
             row = self.grid[y]
             wall = f'{self.colors[color_mode][0]}{wall_type}{END}'
@@ -92,6 +94,12 @@ class MazeGenerator:
                     cell_rep = f'{self.colors[color_mode][3]} █ {END}'
                 elif decimal == 15:
                     cell_rep = f'{self.colors[color_mode][0]}███{END}'
+                if show_path == True:
+                    if (x, y) in self._path and (x,y) != (0,0):
+                        cursor = (self.colors[color_mode][2] if color_mode == 1 else
+                                  self.colors[color_mode][3])
+                        c = f'{self.colors[color_mode][1]}░'
+                        cell_rep = c + cursor +'●' + c
                 if cell_rep == f'{self.colors[color_mode][1]}░':
                     cell_rep *= 3
                 line2 += f'{left}{cell_rep}{right}'
@@ -102,22 +110,28 @@ class MazeGenerator:
 
     def generate(self) -> None:
         error = False
+        show = False
+        
         if self.width < 7 or self.height < 5:
             raise Exception(f"{RED}Error: Maze size too small for '42' pattern.{END}")
         try:
             self._dfs()
         except Exception as e:
             raise (e)
-        self.render()
+        self._bfs(self.entry, self.exit)
+        self.render(show_path=show)
         mode = 0
         while True:
             while True:
+                show_hide = 'hide path' if show else 'show path'
                 try:
                     print(f'\n{self.colors[mode][0]}enter: regenerate maze')
+                    print(f'1: {show_hide}')
                     print('2: maze theme')
+                    print('-' * 10)
                     print('q: quit')
                     choice = input('\nEnter command: ')
-                    print('▁' * 20)
+                    print('\n')
                     break
                 except KeyboardInterrupt:
                     error = True
@@ -125,19 +139,28 @@ class MazeGenerator:
             if error == True:
                 print('\nCtrl+c detected: Program closed')
                 exit()
-            if choice == '1' or not choice:
+            if not choice:
                 self._dfs()
-                self.render(color_mode=mode)
+                self._path = []
+                self._bfs(self.entry, self.exit)
+                self.render(color_mode=mode, show_path=show)
+            elif choice == '1':
+                show = False if show else True
+                self.render(color_mode=mode, show_path=show)
             elif choice == '2':
-                print('\nenter: default theme')
-                print('1: sombrero theme')
-                print('2: Orange is the new black theme')
-                print('3: BubbleGum theme')
-                print('4: Snake theme')
-                print('b: go back')
+                print(self.colors[mode][2] + '           ╭' + ('-' * 12) + '╮')
+                print('           | ' + '* THEMES * |')
+                print('           ╰' + ('-' * 12) + '╯')
+                print('\n          enter) default theme')
+                print('          1) sombrero theme')
+                print('          2) Orange is the new black theme')
+                print('          3) BubbleGum theme')
+                print('          4) Snake theme')
+                print('          ' + '-' * 10)
+                print('          b) go back', END)
                 while True:
                     try:
-                        color_mode = input('\nMake your choice: ')
+                        color_mode = input(self.colors[mode][0] +'\n          Chose your theme: ')
                         if not color_mode or color_mode == 'b':
                             break
                         mode = int(color_mode)
@@ -145,15 +168,16 @@ class MazeGenerator:
                     except ValueError:
                         print('please enter valid input')
                     except KeyboardInterrupt:
+                        print('\nCtrl+c detected: Program closed')
                         return
                 print('\n')
                 if color_mode == 'b':
                     continue
                 elif not color_mode:
-                    self.render()
+                    self.render(show_path=show)
                     mode = 0
                 else:
-                    self.render(color_mode=mode)
+                    self.render(color_mode=mode, show_path=show)
             elif choice == 'q':
                 print('\nProgram closed')
                 exit()
@@ -194,7 +218,48 @@ class MazeGenerator:
 
             else:
                 stack.pop()
-            
+
+
+    def _bfs(self, entry: tuple[int, int], exit: tuple[int, int]) -> None:
+        opposite: dict = {'E':'W', 'W':'E', 'N':'S', 'S':'N'}
+        cell = self.grid
+        x: int = 0
+        y: int = 0
+        visited: set[tuple[int, int]] = set()
+        came_from: dict[tuple[int, int], tuple[int, int]] = {}
+        queue: deque = deque()
+        visited.add(entry)
+        queue.append(entry)
+        came_from[entry] = entry
+        while queue:
+            x, y = queue.popleft()
+            if (x, y) == exit:
+                break
+            neighbours = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
+            for nx, ny in neighbours:
+                if (nx >= 0 and nx < self.width and
+                    ny >= 0 and ny < self.height):
+                    if (nx, ny) not in visited:
+                        direction: str = ''
+                        if nx > x:
+                            direction = 'E'
+                        elif nx < x:
+                            direction = 'W'
+                        elif ny > y:
+                            direction = 'S'
+                        elif ny < y:
+                            direction = 'N'
+                        if (cell[y][x].walls[direction] == False and
+                            cell[ny][nx].walls[opposite[direction]] == False):
+                            queue.append((nx, ny))
+                            came_from[(nx, ny)] = (x, y)
+                            visited.add((nx, ny))
+        current = (exit)
+        while current != entry:
+            current = came_from[current]
+            self._path.append(current)
+
+
 
     def _prims(self, x: int, y: int) -> None:
         ...
