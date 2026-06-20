@@ -11,7 +11,8 @@ if __name__ == "__main__":
     try:
         parsed.parse(sys.argv[1])
     except Exception as e:
-        print(e.__class__.__name__, ':', e)
+        print(e, end='')
+        exit()
     
     maze = MazeGenerator(parsed)
     try:
