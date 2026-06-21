@@ -1,3 +1,5 @@
+from .colors import RED, END
+
 class Parsing():
     def __init__(self) -> None:
         self._width: int = 0
@@ -20,12 +22,16 @@ class Parsing():
             self._width = int(p['WIDTH'])
             if self._width < 0:
                 errors.append(ValueError('width should not be negative'))
+            if self._width < 7:
+                raise Exception(f"{RED}Error: Maze size too small for '42' pattern.{END}")
         except ValueError as e:
             errors.append(e)
         try:
             self._height = int(p['HEIGHT'])
             if self._height < 0:
                 errors.append(ValueError('height should not be negative'))
+            if self._height < 5:
+                raise Exception(f"{RED}Error: Maze size too small for '42' pattern.{END}")
         except ValueError as e:
             errors.append(e)
         try:
