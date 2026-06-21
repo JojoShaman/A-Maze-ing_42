@@ -1,6 +1,7 @@
 from mazegen.generator import MazeGenerator
 from mazegen.parsing import Parsing
 import sys
+from os import system
 
 def run() -> None:
     maze = MazeGenerator(parsed)
@@ -34,6 +35,7 @@ def run() -> None:
                 maze.generate()
             elif command == '1':
                 maze._show = False if maze._show else True
+                system('clear')
                 maze.render()
             elif command == '2':
                 print(maze._themes[maze._mode][2])
@@ -57,9 +59,11 @@ def run() -> None:
                 if theme_input == 'b':
                     continue
                 elif not theme_input:
+                    system('clear')
                     maze.render()
                     maze._mode = 0
                 else:
+                    system('clear')
                     maze.render()
             elif command == '3':
                 while True:
@@ -75,6 +79,7 @@ def run() -> None:
                     else:
                         maze._wall = wall_input
                         break
+                system('clear')
                 maze.render() 
             elif command == 'q':
                 print('Program closed')
