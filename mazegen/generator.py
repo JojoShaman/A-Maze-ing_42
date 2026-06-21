@@ -3,13 +3,20 @@ from random import choice
 from functools import reduce
 from .colors import WHITE, BLACK, END, RED, BLUE, GREEN, MAGENTA, YELLOW, CYAN, ORANGE, BROWN
 from collections import deque
-
+from time import sleep
+from os import system
 class Cell:
     def __init__(self) -> None:
         self.walls: dict[str, bool] = {
             'W': True, 'S': True, 'E': True, 'N': True}
         self.visited: bool = False
         self.static: bool = False
+        self.top: str = ''
+        self.left: str = ''
+        self.right: str = ''
+        self.middle: str = ''
+        self.bottom: str = ''
+        self.bullet: str = ''
 
     def get_binary(self) -> str:
         binary: str = ''
@@ -68,48 +75,76 @@ class MazeGenerator:
 
 
     def render(self) -> None:
-        print('')
+        # print('')
+        # pathway = ''
+        # maze = ''
+
+        rendered: str = ''
         for y in range(len(self.grid)):
             row = self.grid[y]
             wall = f'{self._themes[self._mode][0]}{self._wall}{END}'
-            line1 = line2 = line3 = right = left = ''
+            line1: str = ''
+            line2: str = ''
+            line3: str = ''
+            right = left = ''
             for x in range(len(row)):
                 cell_floor = f'{self._themes[self._mode][1]}░'
                 cell: Cell = row[x]
                 decimal: int = int(cell.get_binary(), 2)
                 if decimal & 1:
-                    line1 += f'{wall * 5}'
+                    cell.top = f'{wall * 5}'
                 else:
-                    line1 += f'{wall}{cell_floor * 3}{wall}'
+                    cell.top = f'{wall}{cell_floor * 3}{wall}'
                 if decimal & 2:
-                    right = f'{wall}'
+                    cell.right = f'{wall}'
                 else:
-                    right = f'{cell_floor}'
+                    cell.right = f'{cell_floor}'
                 if decimal & 8:
-                    left = f'{wall}'
+                    cell.left = f'{wall}'
                 else:
-                    left = f'{cell_floor}'
+                    cell.left = f'{cell_floor}'
                 if decimal & 4:
-                    line3 += f'{wall * 5}'
+                    cell.bottom = f'{wall * 5}'
                 if (x,y) == self.entry:
                     cell_floor = f'{self._themes[self._mode][2]} █ {END}'
                 elif (x,y) == self.exit:
                     cell_floor = f'{self._themes[self._mode][3]} █ {END}'
                 elif decimal == 15:
                     cell_floor = f'{self._themes[self._mode][0]}{wall * 3}{END}'
-                if self._show == True:
-                    if (x, y) in self._path and (x,y) != (0,0):
-                        bullet = (self._themes[self._mode][2] if self._mode == 1 else
-                                  self._themes[self._mode][3]) +'●'
-                        c = f'{self._themes[self._mode][1]}░'
-                        cell_floor = c + bullet + c
+                if (x, y) in self._path and (x,y) != (0,0):
+                    bullet = (self._themes[self._mode][2] if self._mode == 1 else
+                                self._themes[self._mode][3]) +'●'
+                    c = f'{self._themes[self._mode][1]}░'
+                    dot = c + bullet + c
+                    cell.bullet = f'{cell.left}{dot}{cell.right}'
                 if cell_floor == f'{self._themes[self._mode][1]}░':
                     cell_floor *= 3
-                line2 += f'{left}{cell_floor}{right}'
-            
-            print(line1)
-            print(line2)
-        print(line3) 
+                cell.middle = f'{cell.left}{cell_floor}{cell.right}'
+                line1 += cell.top
+                line2 += cell.middle
+                line3 += cell.bottom
+            rendered += line1 + '\n' + line2 + '\n'
+        rendered += line3
+        if self._show == True:
+            for dot in self._path:
+                print('\033[H', end='')
+                sleep(0.005)
+                # print('test')
+                for y in range(self.height):
+                    for x in range(self.width):
+                        print(self.grid[y][x].top, end='')
+                    print('')
+                    for x in range(self.width):
+                        if (x,y) == dot and (x,y) != (0,0):
+                            self.grid[y][x].middle = self.grid[y][x].bullet
+                        print(self.grid[y][x].middle, end='')
+                    print('')
+                for x in range(self.width):
+                    print(self.grid[y][x].bottom, end='')
+                print('')
+        else:
+            print(rendered)
+
     
     def theme_menu(self) -> None:
         print((' ' * 11) + '╭' + ('-' * 12) + '╮')
@@ -199,9 +234,11 @@ class MazeGenerator:
                             came_from[(nx, ny)] = (x, y)
                             visited.add((nx, ny))
         current = (exit)
+        p: list = []
         while current != entry:
             current = came_from[current]
-            self._path.append(current)
+            p.append(current)
+        self._path = list(reversed(p))
 
 
     def _prims(self, x: int, y: int) -> None:
