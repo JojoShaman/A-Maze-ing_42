@@ -11,6 +11,12 @@ class Cell:
         self.visited: bool = False
         self.static: bool = False
 
+    def get_binary(self) -> str:
+        binary: str = ''
+        value: list = [int(x) for x in self.walls.values()]
+        binary += str(reduce(lambda a, b: (a * 10) + b, value))
+        return (binary)
+
 class MazeGenerator:
     def __init__(self, config: Parsing):
         self.width = config._width
@@ -21,14 +27,17 @@ class MazeGenerator:
         self.perfect = config._perfect
         self.algorythm = config._algorythm
         self.grid: list[list[Cell]] = [] 
-        self.colors: list[list[str]] = [
+        self._path: list = []
+        self._show = False
+        self._wall = '█'
+        self._mode = 0
+        self._themes: list[list[str]] = [
                 [WHITE, BLUE, RED, GREEN],
                 [YELLOW, GREEN, MAGENTA, CYAN],
                 [ORANGE, BLACK, WHITE, WHITE],
                 [CYAN, MAGENTA, YELLOW, YELLOW],
                 [GREEN, BLUE, RED, RED]
                 ]
-        self._path: list = []
 
     def get_unvisited(self, x: int, y: int) -> list[tuple[int, int]]:
         unvisited: list[tuple] = []
@@ -58,132 +67,67 @@ class MazeGenerator:
         self.grid[ny][nx].walls[opposite[direction]] = False
 
 
-    def render(self, wall_type: str = '█', color_mode: int = 0, show_path: bool = False) -> None:
+    def render(self) -> None:
+        print('')
         for y in range(len(self.grid)):
             row = self.grid[y]
-            wall = f'{self.colors[color_mode][0]}{wall_type}{END}'
-            line1 = ''
-            line2 = ''
-            line3 = ''
-            right = ''
-            left = ''
+            wall = f'{self._themes[self._mode][0]}{self._wall}{END}'
+            line1 = line2 = line3 = right = left = ''
             for x in range(len(row)):
-                cell_rep = f'{self.colors[color_mode][1]}░'
+                cell_floor = f'{self._themes[self._mode][1]}░'
                 cell: Cell = row[x]
-                binary: str = ''
-                value: list = [int(x) for x in cell.walls.values()]
-                binary += str(reduce(lambda a, b: (a * 10) + b, value))
-                decimal: int = int(binary, 2)
+                decimal: int = int(cell.get_binary(), 2)
                 if decimal & 1:
                     line1 += f'{wall * 5}'
                 else:
-                    line1 += f'{wall}{cell_rep * 3}{wall}'
+                    line1 += f'{wall}{cell_floor * 3}{wall}'
                 if decimal & 2:
                     right = f'{wall}'
                 else:
-                    right = f'{cell_rep}'
+                    right = f'{cell_floor}'
                 if decimal & 8:
                     left = f'{wall}'
                 else:
-                    left = f'{cell_rep}'
+                    left = f'{cell_floor}'
                 if decimal & 4:
                     line3 += f'{wall * 5}'
-                if x == self.entry[0] and y == self.entry[1]:
-                    cell_rep = f'{self.colors[color_mode][2]} █ {END}'
-                elif x == self.exit[0] and y == self.exit[1]:
-                    cell_rep = f'{self.colors[color_mode][3]} █ {END}'
+                if (x,y) == self.entry:
+                    cell_floor = f'{self._themes[self._mode][2]} █ {END}'
+                elif (x,y) == self.exit:
+                    cell_floor = f'{self._themes[self._mode][3]} █ {END}'
                 elif decimal == 15:
-                    cell_rep = f'{self.colors[color_mode][0]}███{END}'
-                if show_path == True:
+                    cell_floor = f'{self._themes[self._mode][0]}{wall * 3}{END}'
+                if self._show == True:
                     if (x, y) in self._path and (x,y) != (0,0):
-                        cursor = (self.colors[color_mode][2] if color_mode == 1 else
-                                  self.colors[color_mode][3])
-                        c = f'{self.colors[color_mode][1]}░'
-                        cell_rep = c + cursor +'●' + c
-                if cell_rep == f'{self.colors[color_mode][1]}░':
-                    cell_rep *= 3
-                line2 += f'{left}{cell_rep}{right}'
+                        bullet = (self._themes[self._mode][2] if self._mode == 1 else
+                                  self._themes[self._mode][3]) +'●'
+                        c = f'{self._themes[self._mode][1]}░'
+                        cell_floor = c + bullet + c
+                if cell_floor == f'{self._themes[self._mode][1]}░':
+                    cell_floor *= 3
+                line2 += f'{left}{cell_floor}{right}'
             
             print(line1)
             print(line2)
         print(line3) 
-
+    
+    def theme_menu(self) -> None:
+        print((' ' * 11) + '╭' + ('-' * 12) + '╮')
+        print((' ' * 11) + '| ' + '* THEMES * |')
+        print((' ' * 11) + '╰' + ('-' * 12) + '╯' + '\n')
+        print((' ' * 10) + 'enter) default theme')
+        print((' ' * 10) + '1) sao paolo theme')
+        print((' ' * 10) + '2) Orange is the new black theme')
+        print((' ' * 10) + '3) BubbleGum theme')
+        print((' ' * 10) + '4) Snake theme')
+        print((' ' * 10) + '-' * 10)
+        print((' ' * 10) + 'b) go back', END)
+    
     def generate(self) -> None:
-        error = False
-        show = False
-        
-        if self.width < 7 or self.height < 5:
-            raise Exception(f"{RED}Error: Maze size too small for '42' pattern.{END}")
-        try:
-            self._dfs()
-        except Exception as e:
-            raise (e)
+        self._dfs()
+        self._path = []
         self._bfs(self.entry, self.exit)
-        self.render(show_path=show)
-        mode = 0
-        while True:
-            while True:
-                show_hide = 'hide path' if show else 'show path'
-                try:
-                    print(f'\n{self.colors[mode][0]}enter: regenerate maze')
-                    print(f'1: {show_hide}')
-                    print('2: maze theme')
-                    print('-' * 10)
-                    print('q: quit')
-                    choice = input('\nEnter command: ')
-                    print('\n')
-                    break
-                except KeyboardInterrupt:
-                    error = True
-                    break
-            if error == True:
-                print('\nCtrl+c detected: Program closed')
-                exit()
-            if not choice:
-                self._dfs()
-                self._path = []
-                self._bfs(self.entry, self.exit)
-                self.render(color_mode=mode, show_path=show)
-            elif choice == '1':
-                show = False if show else True
-                self.render(color_mode=mode, show_path=show)
-            elif choice == '2':
-                print(self.colors[mode][2] + '           ╭' + ('-' * 12) + '╮')
-                print('           | ' + '* THEMES * |')
-                print('           ╰' + ('-' * 12) + '╯')
-                print('\n          enter) default theme')
-                print('          1) sombrero theme')
-                print('          2) Orange is the new black theme')
-                print('          3) BubbleGum theme')
-                print('          4) Snake theme')
-                print('          ' + '-' * 10)
-                print('          b) go back', END)
-                while True:
-                    try:
-                        color_mode = input(self.colors[mode][0] +'\n          Chose your theme: ')
-                        if not color_mode or color_mode == 'b':
-                            break
-                        mode = int(color_mode)
-                        break
-                    except ValueError:
-                        print('please enter valid input')
-                    except KeyboardInterrupt:
-                        print('\nCtrl+c detected: Program closed')
-                        return
-                print('\n')
-                if color_mode == 'b':
-                    continue
-                elif not color_mode:
-                    self.render(show_path=show)
-                    mode = 0
-                else:
-                    self.render(color_mode=mode, show_path=show)
-            elif choice == 'q':
-                print('\nProgram closed')
-                exit()
-            else:
-                print('please enter valid input')
-
+        self.render()
 
     def _dfs(self) -> None:
         self.get_grid()
@@ -260,9 +204,5 @@ class MazeGenerator:
             self._path.append(current)
 
 
-
     def _prims(self, x: int, y: int) -> None:
         ...
-
-    # def solution(self) -> list[int]:
-    #     pass
