@@ -1,5 +1,6 @@
 from mazegen.generator import MazeGenerator
 from mazegen.parsing import Parsing
+from mazegen.colors import RED, END
 import sys
 from os import system
 
@@ -22,6 +23,7 @@ def run() -> None:
                     print(f'1) {show_hide}')
                     print('2) maze theme')
                     print('3) change wall type')
+                    print('4) change maze size')
                     print('-' * 10)
                     print('q: quit')
                     command = input('\nEnter command: ')
@@ -81,6 +83,38 @@ def run() -> None:
                         break
                 system('clear')
                 maze.render() 
+            elif command == '4':
+                while True:
+                    while True:
+                        print('          ', end='')
+                        width_input = input(
+                            'insert width: ')
+                        if width_input == '':
+                            break
+                        try:
+                            maze.width = int(width_input)
+                            break
+                        except ValueError as e:
+                            print(e)
+                            continue
+                    while True:
+                        print('          ', end='')
+                        height_input = input(
+                            'insert height: ')
+                        if height_input == '':
+                            break
+                        try:
+                            maze.height = int(height_input)
+                            break
+                        except ValueError as e:
+                            print(e)
+                            continue
+                    if maze.width < 7 or maze.height < 5:
+                        print(f"{RED}Error: Maze size too small for '42' pattern.{END}")
+                        continue
+                    maze.exit = (maze.width - 1, maze.height - 1)
+                    maze.generate()
+                    break
             elif command == 'q':
                 print('Program closed')
                 return
