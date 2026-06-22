@@ -65,11 +65,12 @@ def run() -> None:
                     continue
                 elif not theme_input:
                     system('clear')
-                    maze.render()
+                    maze.render(update=True)
                     maze._mode = 0
                 else:
                     system('clear')
-                    maze.render()
+                    maze.render(update=True)
+
             elif command == '3':
                 while True:
                     print('          ', end='')
