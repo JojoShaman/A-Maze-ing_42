@@ -88,11 +88,11 @@ class MazeGenerator:
         for _ in range(8):
             for w in win:
                 print('\033[H', end='')
-                print(self.maze_path)
+                print(self.display)
                 print(w)
                 sleep(0.1)
         system('clear')
-        print(self.maze_path, end='')
+        print(self.display, end='')
 
 
     def get_unvisited(self, x: int, y: int) -> list[tuple[int, int]]:
@@ -123,48 +123,70 @@ class MazeGenerator:
         self.grid[ny][nx].walls[opposite[direction]] = False
 
 
-    def render(self) -> None:
+    def render(self, ansi: int = 1, update: bool = False) -> None:
+        is_ansi: list[list[str]] = [
+            [(''), (''), (''), ('')],
+
+            [(self._themes[self._mode][0]), (self._themes[self._mode][1]),
+            (self._themes[self._mode][2]), (self._themes[self._mode][3])]]
+        is_color: list[str] = [
+            (is_ansi[ansi][0]), (is_ansi[ansi][1]),
+            (is_ansi[ansi][2]), (is_ansi[ansi][3])
+        ]
+        _end: list[str] = [
+            (''), (END)]
+
         rendered: str = ''
         for y in range(len(self.grid)):
             row = self.grid[y]
-            wall = f'{self._themes[self._mode][0]}{self._wall}{END}'
+            wall = f'{is_color[0]}{self._wall}{_end[ansi]}'
             line1: str = ''
             line2: str = ''
             line3: str = ''
             for x in range(len(row)):
-                cell_floor = f'{self._themes[self._mode][1]}░'
+                cell_floor = f'{is_color[1]}░'
                 cell: Cell = row[x]
                 decimal: int = int(cell.get_binary(), 2)
+
                 if decimal & 1:
                     cell.top = f'{wall * 5}'
                 else:
                     cell.top = f'{wall}{cell_floor * 3}{wall}'
+
                 if decimal & 2:
                     cell.right = f'{wall}'
                 else:
                     cell.right = f'{cell_floor}'
+
                 if decimal & 8:
                     cell.left = f'{wall}'
                 else:
                     cell.left = f'{cell_floor}'
+
                 if decimal & 4:
                     cell.bottom = f'{wall * 5}'
+
                 if decimal == 15:
-                    cell_floor = f'{self._themes[self._mode][0]}{wall * 3}{END}'
+                    cell_floor = f'{is_color[0]}{wall * 3}{_end[ansi]}'
+
                 if (x, y) in self._path and (x,y) != self.entry:
-                    bullet = (self._themes[self._mode][2] if self._mode == 1 else
-                                self._themes[self._mode][3]) +'●'
-                    c = f'{self._themes[self._mode][1]}░'
+                    bullet = (is_color[2] if self._mode == 1 else
+                                is_color[3]) +'●'
+                    c = f'{is_color[1]}░'
                     dot = c + bullet + c
                     cell.bullet = f'{cell.left}{dot}{cell.right}'
+
                 if (x,y) == self.entry:
                     f = cell_floor
-                    cell_floor = f + f'{self._themes[self._mode][2]}█{END}' + f
+                    cell_floor = f + f'{is_color[2]}█{_end[ansi]}' + f
+
                 if (x,y) == self.exit:
                     f = cell_floor
-                    cell_floor = f + f'{self._themes[self._mode][3]}█{END}' + f
-                if cell_floor == f'{self._themes[self._mode][1]}░':
+                    cell_floor = f + f'{is_color[3]}█{_end[ansi]}' + f
+
+                if cell_floor == f'{is_color[1]}░':
                     cell_floor *= 3
+
                 cell.middle = f'{cell.left}{cell_floor}{cell.right}'
                 line1 += cell.top
                 line2 += cell.middle
@@ -174,20 +196,25 @@ class MazeGenerator:
         block = self.grid
         if self._show == True:
             for dot in self._path:
-                print('\033[H', end='')
-                sleep(0.005)
+                if ansi == 1 and update == False:
+                    print('\033[H', end='')
+                    sleep(0.005)
                 for y in range(self.height):
-                    for x in range(self.width):
-                        print(block[y][x].top, end='')
-                    print('')
-                    for x in range(self.width):
-                        if (x,y) == dot and (x,y) != (0,0):
-                            block[y][x].middle = block[y][x].bullet
-                        print(block[y][x].middle, end='')
-                    print('')
-                for x in range(self.width):
-                    print(block[y][x].bottom, end='')
-                print('')
+                    for j in range(3):
+                        for x in range(self.width):
+                            if (x,y) == dot and (x,y) != (0,0):
+                                block[y][x].middle = block[y][x].bullet
+                            if ansi == 1 and update == False:
+                                if j == 0:
+                                    print(block[y][x].top, end='')
+                                if j == 1:
+                                    print(block[y][x].middle, end='')
+                                if j == 2 and y == self.height - 1:
+                                    print(block[y][x].bottom, end='')
+                                if x == self.width - 1:
+                                    if (j == 0 or j == 1 or 
+                                        (j == 2 and y == self.height - 1)):
+                                        print('')
             self.maze_path = ''
             for y in range(self.height):
                     for x in range(self.width):
@@ -200,13 +227,24 @@ class MazeGenerator:
                         for x in range(self.width):
                             self.maze_path += block[y][x].bottom
                         self.maze_path += '\n'
-            self.display = self.maze_path
-            sleep(0.08)
-            system('clear')
-            self.display_win()
+
+            if ansi == 0:
+                self.output = self.maze_path
+            else:
+                self.display = self.maze_path
+                if update == False:
+                    sleep(0.08)
+                    system('clear')
+                    self.display_win()
+                else:
+                    print(self.display)
+
         else:
             print(rendered, end='')
-            self.display = rendered
+            if ansi == 0:
+                self.output = rendered
+            else:
+                self.display = rendered
         termios.tcflush(sys.stdin, termios.TCIFLUSH)
 
 
@@ -226,69 +264,7 @@ class MazeGenerator:
 
 
     def save(self) -> None:
-        rendered: str = ''
-        for y in range(len(self.grid)):
-            row = self.grid[y]
-            wall = self._wall
-            line1: str = ''
-            line2: str = ''
-            line3: str = ''
-            for x in range(len(row)):
-                cell_floor = '░'
-                cell: Cell = row[x]
-                decimal: int = int(cell.get_binary(), 2)
-                if decimal & 1:
-                    cell.top = f'{wall * 5}'
-                else:
-                    cell.top = f'{wall}{cell_floor * 3}{wall}'
-                if decimal & 2:
-                    cell.right = f'{wall}'
-                else:
-                    cell.right = f'{cell_floor}'
-                if decimal & 8:
-                    cell.left = f'{wall}'
-                else:
-                    cell.left = f'{cell_floor}'
-                if decimal & 4:
-                    cell.bottom = f'{wall * 5}'
-                if (x,y) == self.entry:
-                    cell_floor = '░█░'
-                elif (x,y) == self.exit:
-                    cell_floor = '░█░'
-                elif decimal == 15:
-                    cell_floor = wall * 3
-                if (x, y) in self._path and (x,y) != self.entry:
-                    cell.bullet = cell.left + '░' + '●' + '░' + cell.right
-                if cell_floor == '░':
-                    cell_floor *= 3
-                cell.middle = f'{cell.left}{cell_floor}{cell.right}'
-                line1 += cell.top
-                line2 += cell.middle
-                line3 += cell.bottom
-            rendered += line1 + '\n' + line2 + '\n'
-        rendered += line3
-        block = self.grid
-        for dot in self._path:
-            for y in range(self.height):
-                for x in range(self.width):
-                    if (x,y) == dot and (x,y) != (0,0):
-                        block[y][x].middle = block[y][x].bullet
-        self.maze_path = ''
-        for y in range(self.height):
-                for x in range(self.width):
-                    self.maze_path += block[y][x].top
-                self.maze_path += '\n'
-                for x in range(self.width):
-                    self.maze_path += block[y][x].middle
-                self.maze_path += '\n'
-                if y == self.height - 1:
-                    for x in range(self.width):
-                        self.maze_path += block[y][x].bottom
-                    self.maze_path += '\n'
-        if self._show == True:
-            self.output = self.maze_path
-        else:
-            self.output = rendered
+        self.render(ansi=0)
         with open (self.output_file, 'w') as file:
             file.write(self.output)
         self.saved()
@@ -312,6 +288,8 @@ class MazeGenerator:
         self.render()
 
     def _dfs(self) -> None:
+        '''Depth-first search (DFS) is an algorithm used to traverse 
+        or search through a data structure, such as a graph or tree.'''
         self.get_grid()
         stack: list[tuple] = []
         stack.append(self.entry)
