@@ -42,7 +42,6 @@ class MazeGenerator:
         self.maze_path = ''
         self.display = ''
         self.output = ''
-        # self.maze_rendered: list = []
         self._themes: list[list[str]] = [
                 [WHITE, BLUE, RED, GREEN],
                 [YELLOW, GREEN, MAGENTA, CYAN],
@@ -171,7 +170,7 @@ class MazeGenerator:
                 line2 += cell.middle
                 line3 += cell.bottom
             rendered += line1 + '\n' + line2 + '\n'
-        rendered += line3
+        rendered += line3 + '\n'
         block = self.grid
         if self._show == True:
             for dot in self._path:
@@ -206,7 +205,7 @@ class MazeGenerator:
             system('clear')
             self.display_win()
         else:
-            print(rendered)
+            print(rendered, end='')
             self.display = rendered
         termios.tcflush(sys.stdin, termios.TCIFLUSH)
 
@@ -224,7 +223,7 @@ class MazeGenerator:
             else:
                 sleep(0.6)
             system('clear')
-        # print(self.display)
+
 
     def save(self) -> None:
         rendered: str = ''

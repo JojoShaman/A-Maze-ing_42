@@ -122,7 +122,7 @@ def run() -> None:
             elif command == '5':
                 maze.save()
                 system('clear')
-                print(maze.display)
+                print(maze.display, end='')
             elif command == 'q':
                 print('Program closed')
                 return
