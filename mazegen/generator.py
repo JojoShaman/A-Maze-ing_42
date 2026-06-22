@@ -5,6 +5,7 @@ from .colors import WHITE, BLACK, END, RED, BLUE, GREEN, MAGENTA, YELLOW, CYAN, 
 from collections import deque
 from time import sleep
 from os import system
+import sys, termios
 class Cell:
     def __init__(self) -> None:
         self.walls: dict[str, bool] = {
@@ -38,6 +39,10 @@ class MazeGenerator:
         self._show = False
         self._wall = '█'
         self._mode = 0
+        self.maze_path = ''
+        self.display = ''
+        self.output = ''
+        # self.maze_rendered: list = []
         self._themes: list[list[str]] = [
                 [WHITE, BLUE, RED, GREEN],
                 [YELLOW, GREEN, MAGENTA, CYAN],
@@ -45,6 +50,51 @@ class MazeGenerator:
                 [CYAN, MAGENTA, YELLOW, YELLOW],
                 [GREEN, BLUE, RED, RED]
                 ]
+    
+
+    def display_win(self) -> None:
+        space: str = ''
+        if ((self.width * 5) - 60) > 0:
+            space += ' ' * (((self.width * 5) - 64) // 2)
+        w = self._wall
+        win: list[str] = [
+            (
+                f'{self._themes[self._mode][0]}' +
+                f'{space} {w * 2}╗   {w * 2}╗ {w * 6}╗ {w * 2}╗   {w * 2}╗     ' +
+                f'{w * 2}╗    {w * 2}╗{w * 2}╗{w * 3}╗   {w * 2}╗  {w * 2}╗\n' + 
+                f'{space} ╚{w * 2}╗ {w * 2}╔╝{w * 2}╔═══{w * 2}╗{w * 2}║   {w * 2}║   ' +
+                f'  {w * 2}║    {w * 2}║{w * 2}║{w * 4}╗  {w * 2}║  {w * 2}║\n' +
+                f'{space}  ╚{w * 4}╔╝ {w * 2}║   {w * 2}║{w * 2}║   {w * 2}║    ' +
+                f' {w * 2}║ {w}╗ {w * 2}║{w * 2}║{w * 2}╔{w * 2}╗ {w * 2}║  {w * 2}║\n' +
+                f'{space}   ╚{w * 2}╔╝  {w * 2}║   {w * 2}║{w * 2}║   {w * 2}║  ' +
+                f'   {w * 2}║{w * 3}╗{w * 2}║{w * 2}║{w * 2}║╚{w * 2}╗{w * 2}║  ╚═╝\n' +
+                f'{space}    {w * 2}║   ╚{w * 6}╔╝╚{w * 6}╔╝     ╚{w * 3}╔{w * 3}' +
+                f'╔╝{w * 2}║{w * 2}║ ╚{w * 4}║  {w * 2}╗\n' +
+                f'{space}    ╚═╝    ╚═════╝  ╚═════╝       ╚══╝╚══╝ ' +
+                '╚═╝╚═╝  ╚═══╝  ╚═╝\n' + END),
+            (
+                f'{self._themes[self._mode][3]}'
+                f'{space} {w * 2}╗   {w * 2}╗ {w * 6}╗ {w * 2}╗   {w * 2}╗     ' +
+                f'{w * 2}╗    {w * 2}╗{w * 2}╗{w * 3}╗   {w * 2}╗  {w * 2}╗\n' + 
+                f'{space} ╚{w * 2}╗ {w * 2}╔╝{w * 2}╔═══{w * 2}╗{w * 2}║   {w * 2}║   ' +
+                f'  {w * 2}║    {w * 2}║{w * 2}║{w * 4}╗  {w * 2}║  {w * 2}║\n' +
+                f'{space}  ╚{w * 4}╔╝ {w * 2}║   {w * 2}║{w * 2}║   {w * 2}║    ' +
+                f' {w * 2}║ {w}╗ {w * 2}║{w * 2}║{w * 2}╔{w * 2}╗ {w * 2}║  {w * 2}║\n' +
+                f'{space}   ╚{w * 2}╔╝  {w * 2}║   {w * 2}║{w * 2}║   {w * 2}║  ' +
+                f'   {w * 2}║{w * 3}╗{w * 2}║{w * 2}║{w * 2}║╚{w * 2}╗{w * 2}║  ╚═╝\n' +
+                f'{space}    {w * 2}║   ╚{w * 6}╔╝╚{w * 6}╔╝     ╚{w * 3}╔{w * 3}' +
+                f'╔╝{w * 2}║{w * 2}║ ╚{w * 4}║  {w * 2}╗\n' +
+                f'{space}    ╚═╝    ╚═════╝  ╚═════╝       ╚══╝╚══╝ ' +
+                '╚═╝╚═╝  ╚═══╝  ╚═╝\n')]
+        for _ in range(8):
+            for w in win:
+                print('\033[H', end='')
+                print(self.maze_path)
+                print(w)
+                sleep(0.1)
+        system('clear')
+        print(self.maze_path, end='')
+
 
     def get_unvisited(self, x: int, y: int) -> list[tuple[int, int]]:
         unvisited: list[tuple] = []
@@ -75,10 +125,6 @@ class MazeGenerator:
 
 
     def render(self) -> None:
-        # print('')
-        # pathway = ''
-        # maze = ''
-
         rendered: str = ''
         for y in range(len(self.grid)):
             row = self.grid[y]
@@ -86,7 +132,6 @@ class MazeGenerator:
             line1: str = ''
             line2: str = ''
             line3: str = ''
-            right = left = ''
             for x in range(len(row)):
                 cell_floor = f'{self._themes[self._mode][1]}░'
                 cell: Cell = row[x]
@@ -105,18 +150,20 @@ class MazeGenerator:
                     cell.left = f'{cell_floor}'
                 if decimal & 4:
                     cell.bottom = f'{wall * 5}'
-                if (x,y) == self.entry:
-                    cell_floor = f'{self._themes[self._mode][2]} █ {END}'
-                elif (x,y) == self.exit:
-                    cell_floor = f'{self._themes[self._mode][3]} █ {END}'
-                elif decimal == 15:
+                if decimal == 15:
                     cell_floor = f'{self._themes[self._mode][0]}{wall * 3}{END}'
-                if (x, y) in self._path and (x,y) != (0,0):
+                if (x, y) in self._path and (x,y) != self.entry:
                     bullet = (self._themes[self._mode][2] if self._mode == 1 else
                                 self._themes[self._mode][3]) +'●'
                     c = f'{self._themes[self._mode][1]}░'
                     dot = c + bullet + c
                     cell.bullet = f'{cell.left}{dot}{cell.right}'
+                if (x,y) == self.entry:
+                    f = cell_floor
+                    cell_floor = f + f'{self._themes[self._mode][2]}█{END}' + f
+                if (x,y) == self.exit:
+                    f = cell_floor
+                    cell_floor = f + f'{self._themes[self._mode][3]}█{END}' + f
                 if cell_floor == f'{self._themes[self._mode][1]}░':
                     cell_floor *= 3
                 cell.middle = f'{cell.left}{cell_floor}{cell.right}'
@@ -125,26 +172,127 @@ class MazeGenerator:
                 line3 += cell.bottom
             rendered += line1 + '\n' + line2 + '\n'
         rendered += line3
+        block = self.grid
         if self._show == True:
             for dot in self._path:
                 print('\033[H', end='')
                 sleep(0.005)
-                # print('test')
                 for y in range(self.height):
                     for x in range(self.width):
-                        print(self.grid[y][x].top, end='')
+                        print(block[y][x].top, end='')
                     print('')
                     for x in range(self.width):
                         if (x,y) == dot and (x,y) != (0,0):
-                            self.grid[y][x].middle = self.grid[y][x].bullet
-                        print(self.grid[y][x].middle, end='')
+                            block[y][x].middle = block[y][x].bullet
+                        print(block[y][x].middle, end='')
                     print('')
                 for x in range(self.width):
-                    print(self.grid[y][x].bottom, end='')
+                    print(block[y][x].bottom, end='')
                 print('')
+            self.maze_path = ''
+            for y in range(self.height):
+                    for x in range(self.width):
+                        self.maze_path += block[y][x].top
+                    self.maze_path += '\n'
+                    for x in range(self.width):
+                        self.maze_path += block[y][x].middle
+                    self.maze_path += '\n'
+                    if y == self.height - 1:
+                        for x in range(self.width):
+                            self.maze_path += block[y][x].bottom
+                        self.maze_path += '\n'
+            self.display = self.maze_path
+            sleep(0.08)
+            system('clear')
+            self.display_win()
         else:
             print(rendered)
+            self.display = rendered
+        termios.tcflush(sys.stdin, termios.TCIFLUSH)
 
+
+    def saved(self) -> None:
+        _save = GREEN + f'    file saved : {self.output_file}' + END
+        system('clear')
+        for x in range(3):
+            print(self.display)
+            sleep(0.5)
+            print(f'{_save}\r', end='')
+            if x == 2:
+                sleep(0.2)
+                break
+            else:
+                sleep(0.6)
+            system('clear')
+        # print(self.display)
+
+    def save(self) -> None:
+        rendered: str = ''
+        for y in range(len(self.grid)):
+            row = self.grid[y]
+            wall = self._wall
+            line1: str = ''
+            line2: str = ''
+            line3: str = ''
+            for x in range(len(row)):
+                cell_floor = '░'
+                cell: Cell = row[x]
+                decimal: int = int(cell.get_binary(), 2)
+                if decimal & 1:
+                    cell.top = f'{wall * 5}'
+                else:
+                    cell.top = f'{wall}{cell_floor * 3}{wall}'
+                if decimal & 2:
+                    cell.right = f'{wall}'
+                else:
+                    cell.right = f'{cell_floor}'
+                if decimal & 8:
+                    cell.left = f'{wall}'
+                else:
+                    cell.left = f'{cell_floor}'
+                if decimal & 4:
+                    cell.bottom = f'{wall * 5}'
+                if (x,y) == self.entry:
+                    cell_floor = '░█░'
+                elif (x,y) == self.exit:
+                    cell_floor = '░█░'
+                elif decimal == 15:
+                    cell_floor = wall * 3
+                if (x, y) in self._path and (x,y) != self.entry:
+                    cell.bullet = cell.left + '░' + '●' + '░' + cell.right
+                if cell_floor == '░':
+                    cell_floor *= 3
+                cell.middle = f'{cell.left}{cell_floor}{cell.right}'
+                line1 += cell.top
+                line2 += cell.middle
+                line3 += cell.bottom
+            rendered += line1 + '\n' + line2 + '\n'
+        rendered += line3
+        block = self.grid
+        for dot in self._path:
+            for y in range(self.height):
+                for x in range(self.width):
+                    if (x,y) == dot and (x,y) != (0,0):
+                        block[y][x].middle = block[y][x].bullet
+        self.maze_path = ''
+        for y in range(self.height):
+                for x in range(self.width):
+                    self.maze_path += block[y][x].top
+                self.maze_path += '\n'
+                for x in range(self.width):
+                    self.maze_path += block[y][x].middle
+                self.maze_path += '\n'
+                if y == self.height - 1:
+                    for x in range(self.width):
+                        self.maze_path += block[y][x].bottom
+                    self.maze_path += '\n'
+        if self._show == True:
+            self.output = self.maze_path
+        else:
+            self.output = rendered
+        with open (self.output_file, 'w') as file:
+            file.write(self.output)
+        self.saved()
     
     def theme_menu(self) -> None:
         print((' ' * 11) + '╭' + ('-' * 12) + '╮')
