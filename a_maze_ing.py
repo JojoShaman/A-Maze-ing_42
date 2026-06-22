@@ -3,6 +3,7 @@ from mazegen.parsing import Parsing
 from mazegen.colors import RED, END
 import sys
 from os import system
+from time import sleep
 
 def run() -> None:
     maze = MazeGenerator(parsed)
@@ -24,6 +25,7 @@ def run() -> None:
                     print('2) maze theme')
                     print('3) change wall type')
                     print('4) change maze size')
+                    print('5) save rending in a file')
                     print('-' * 10)
                     print('q: quit')
                     command = input('\nEnter command: ')
@@ -34,6 +36,7 @@ def run() -> None:
             if error == True:
                 raise KeyboardInterrupt
             if not command:
+                system('clear')
                 maze.generate()
             elif command == '1':
                 maze._show = False if maze._show else True
@@ -74,12 +77,12 @@ def run() -> None:
                         'insert new wall type (enter for default): ')
                     if wall_input == '':
                         break
-                    elif len(wall_input) != 1:
+                    elif len(wall_input.strip()) != 1:
                         print('invalid wall type, ',
                               'only one character is accepted')
                         continue
                     else:
-                        maze._wall = wall_input
+                        maze._wall = wall_input.strip()
                         break
                 system('clear')
                 maze.render() 
@@ -113,8 +116,13 @@ def run() -> None:
                         print(f"{RED}Error: Maze size too small for '42' pattern.{END}")
                         continue
                     maze.exit = (maze.width - 1, maze.height - 1)
+                    maze._show = False
                     maze.generate()
                     break
+            elif command == '5':
+                maze.save()
+                system('clear')
+                print(maze.display)
             elif command == 'q':
                 print('Program closed')
                 return
