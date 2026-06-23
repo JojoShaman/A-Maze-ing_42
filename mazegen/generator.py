@@ -1,7 +1,7 @@
 from . import Parsing
 from random import choice
 from functools import reduce
-from .colors import WHITE, BLACK, END, RED, BLUE, GREEN, MAGENTA, YELLOW, CYAN, ORANGE, BROWN
+from .colors import WHITE, BLACK, END, RED, BLUE, GREEN, MAGENTA, YELLOW, CYAN, ORANGE, BG_GREEN, BG_BLUE, BG_MAGENTA, BG_BLACK
 from collections import deque
 from time import sleep
 from os import system
@@ -14,18 +14,31 @@ class Cell:
             'W': True, 'S': True, 'E': True, 'N': True}
         self.visited: bool = False
         self.static: bool = False
-        self.top: str = ''
-        self.left: str = ''
-        self.right: str = ''
-        self.middle: str = ''
+        self.top: list[str] = [''] * 2
+        self.left: list[str] = [''] * 2
+        self.right: list[str] = [''] * 2
+        self.middle: list[str] = [''] * 2
         self.bottom: str = ''
         self.bullet: str = ''
+        self.top_bullet: str = ''
+        self.left_bullet: str = ''
+        self.right_bullet: str = ''
+        self.x: int = 0
+        self.y: int = 0
 
     def get_binary(self) -> str:
         binary: str = ''
         value: list = [int(x) for x in self.walls.values()]
         binary += str(reduce(lambda a, b: (a * 10) + b, value))
         return (binary)
+    
+    def neighbors(self) -> dict[str, tuple[int, int]]:
+        return {
+            'NORTH': (self.x, self.y-1),
+            'EAST': (self.x+1, self.y),
+            'SOUTH': (self.x, self.y+1),
+            'WEST': (self.x-1, self.y),
+        }
 
 class MazeGenerator:
     def __init__(self, config: Parsing):
@@ -45,18 +58,18 @@ class MazeGenerator:
         self.display = ''
         self.output = ''
         self._themes: list[list[str]] = [
-                [WHITE, BLUE, RED, GREEN],
-                [YELLOW, GREEN, MAGENTA, CYAN],
-                [ORANGE, BLACK, WHITE, WHITE],
-                [CYAN, MAGENTA, YELLOW, YELLOW],
-                [GREEN, BLUE, RED, RED]
+                [WHITE, BG_BLUE, RED, GREEN],
+                [YELLOW, BG_GREEN, MAGENTA, CYAN],
+                [ORANGE, BG_BLACK, WHITE, WHITE],
+                [CYAN, BG_MAGENTA, YELLOW, YELLOW],
+                [GREEN, BG_BLUE, RED, RED]
                 ]
     
 
     def display_win(self) -> None:
         space: str = ''
-        if ((self.width * 5) - 60) > 0:
-            space += ' ' * (((self.width * 5) - 64) // 2)
+        if ((self.width * 4) - 60) > 0:
+            space += ' ' * (((self.width * 4) - 64) // 2)
         w = self._wall
         win: list[str] = [
             (
@@ -109,6 +122,17 @@ class MazeGenerator:
     
     def get_grid(self) -> None:
         self.grid = [[Cell() for _ in range(self.width)] for _ in range(self.height)]
+        for pos_y, row in enumerate(self.grid) :
+            for pos_x, cell in enumerate(row):
+                cell.x = pos_x
+                cell.y = pos_y
+    
+    # def print_pos(self) -> None:
+    #     cell = self.grid
+    #     for y in range(self.height):
+    #         for x in range(self.width):
+    #             print(f'({cell[y][x].x},{cell[y][x].y}) ', end='')
+    #         print(' ')
 
     def knock_wall(self, x: int, y: int, nx: int, ny: int) -> None:
         opposite: dict = {'E':'W', 'W':'E', 'N':'S', 'S':'N'}
@@ -135,63 +159,77 @@ class MazeGenerator:
             (is_ansi[ansi][0]), (is_ansi[ansi][1]),
             (is_ansi[ansi][2]), (is_ansi[ansi][3])
         ]
+        background: list[str] = [
+            (is_color[1]),
+            (BG_MAGENTA)]
+        
         _end: list[str] = [
             (''), (END)]
-
         rendered: str = ''
         for y in range(len(self.grid)):
             row = self.grid[y]
-            wall = f'\033[43m{is_color[0]}{self._wall}{_end[ansi]}'
+            wall = f'{background[0]}{is_color[0]}{self._wall}{_end[ansi]}'
             line1: str = ''
             line2: str = ''
             line3: str = ''
             for x in range(len(row)):
-                cell_floor = '\033[43m '
+                cell_floor = ' '
                 cell: Cell = row[x]
                 decimal: int = int(cell.get_binary(), 2)
 
                 if decimal & 1:
-                    cell.top = f'{wall * 5}'
+                    cell.top[0] = f'{wall * 4}'
+                    cell.top[1] = f'{wall * 4}'
                 else:
-                    cell.top = f'{wall}\033[43m{cell_floor * 3}{wall}'
+                    cell.top[0] = f'{wall}{background[0]}{cell_floor * 2}{wall}'
+                    if cell.neighbors()['NORTH'] in self._path:
+                        cell.top[1] = f'{wall}{background[1]}{cell_floor * 2}{wall}'
+                    else:
+                        cell.top[1] = f'{wall}{background[0]}{cell_floor * 2}{wall}'
+
 
                 if decimal & 2:
-                    cell.right = f'{wall}'
+                    cell.right[0] = f'{wall}'
+                    cell.right[1] = f'{wall}'
                 else:
-                    cell.right = f'\033[43m{cell_floor}'
+                    cell.right[0] = f'{cell_floor}'
+                    cell.right[1] = f'{cell_floor}'
 
                 if decimal & 8:
-                    cell.left = f'{wall}'
+                    cell.left[0] = f'{wall}'
+                    cell.left[1] = f'{wall}'
                 else:
-                    cell.left = f'\033[43m{cell_floor}'
+                    cell.left[0] = f'{cell_floor}'
+                    cell.left[1] = f'{cell_floor}'
 
                 if decimal & 4:
-                    cell.bottom = f'{wall * 5}'
+                    cell.bottom = f'{wall * 4}'
 
                 if decimal == 15:
-                    cell_floor = f'{is_color[0]}{wall * 3}{_end[ansi]}'
-
-                if (x, y) in self._path and (x,y) != self.entry:
-                    bullet = (is_color[2] if self._mode == 1 else
-                                is_color[3]) +'●'
-                    c = ' '
-                    dot = c + bullet + c
-                    cell.bullet = f'{cell.left}{dot}{cell.right}'
+                    cell_floor = f'{is_color[0]}{wall * 2}{_end[ansi]}'
 
                 if (x,y) == self.entry:
-                    f = cell_floor
-                    cell_floor = f + f'{is_color[2]}█{_end[ansi]}' + f
+                    cell_floor = background[0] + f'{is_color[2]}██{_end[ansi]}'
 
                 if (x,y) == self.exit:
-                    f = cell_floor
-                    cell_floor = f + f'{is_color[3]}█{_end[ansi]}' + f
+                    cell_floor = background[0] + f'{is_color[3]}██{_end[ansi]}'
 
-                if cell_floor == '\033[43m ':
-                    cell_floor *= 3
+                if cell_floor == ' ':
+                    cell_floor *= 2
 
-                cell.middle = f'\033[43m{cell.left}{cell_floor}{cell.right}'
-                line1 += cell.top
-                line2 += cell.middle
+                cell.middle[0] = f'{background[0]}{cell.left[0]}{background[0]}{cell_floor}{background[0]}{cell.right[0]}'
+                if (x,y) in self._path:
+                    if cell.neighbors()['EAST'] in self._path and cell.neighbors()['WEST'] not in self._path:
+                        cell.middle[1] = f'{background[0]}{cell.left[0]}{background[1]}{cell_floor}{background[1]}{cell.right[0]}'
+                    elif cell.neighbors()['WEST'] in self._path and cell.neighbors()['EAST'] not in self._path:
+                            cell.middle[1] = f'{background[1]}{cell.left[0]}{background[1]}{cell_floor}{background[0]}{cell.right[0]}'
+                    else:
+                        cell.middle[1] = f'{background[1]}{cell.left[0]}{background[1]}{cell_floor}{background[1]}{cell.right[0]}'
+                else:
+                        cell.middle[1] = f'{background[1]}{cell.left[0]}{background[1]}{cell_floor}{background[0]}{cell.right[0]}'
+
+                line1 += cell.top[0]
+                line2 += cell.middle[0]
                 line3 += cell.bottom
             rendered += line1 + '\n' + line2 + '\n'
         rendered += line3 + '\n'
@@ -204,13 +242,14 @@ class MazeGenerator:
                 for y in range(self.height):
                     for j in range(3):
                         for x in range(self.width):
-                            if (x,y) == dot and (x,y) != (0,0):
-                                block[y][x].middle = block[y][x].bullet
+                            if (x,y) == dot:
+                                block[y][x].top[0] = block[y][x].top[1]
+                                block[y][x].middle[0] = block[y][x].middle[1]
                             if ansi == 1 and update == False:
                                 if j == 0:
-                                    print(block[y][x].top, end='')
+                                    print(block[y][x].top[0], end='')
                                 if j == 1:
-                                    print(block[y][x].middle, end='')
+                                    print(block[y][x].middle[0], end='')
                                 if j == 2 and y == self.height - 1:
                                     print(block[y][x].bottom, end='')
                                 if x == self.width - 1:
@@ -220,10 +259,10 @@ class MazeGenerator:
             self.maze_path = ''
             for y in range(self.height):
                     for x in range(self.width):
-                        self.maze_path += block[y][x].top
+                        self.maze_path += block[y][x].top[0]
                     self.maze_path += '\n'
                     for x in range(self.width):
-                        self.maze_path += block[y][x].middle
+                        self.maze_path += block[y][x].middle[0]
                     self.maze_path += '\n'
                     if y == self.height - 1:
                         for x in range(self.width):
@@ -362,6 +401,7 @@ class MazeGenerator:
                             visited.add((nx, ny))
         current = (exit)
         p: list = []
+        p.append(current)
         while current != entry:
             current = came_from[current]
             p.append(current)

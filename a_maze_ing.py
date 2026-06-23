@@ -65,8 +65,8 @@ def run() -> None:
                     continue
                 elif not theme_input:
                     system('clear')
-                    maze.render(update=True)
                     maze._mode = 0
+                    maze.render(update=True)
                 else:
                     system('clear')
                     maze.render(update=True)
@@ -77,6 +77,7 @@ def run() -> None:
                     wall_input = input(
                         'insert new wall type (enter for default): ')
                     if wall_input == '':
+                        maze._wall = '█'
                         break
                     elif len(wall_input.strip()) != 1:
                         print('invalid wall type, ',
