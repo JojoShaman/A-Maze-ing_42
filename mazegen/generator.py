@@ -6,6 +6,8 @@ from collections import deque
 from time import sleep
 from os import system
 import sys, termios
+import re
+
 class Cell:
     def __init__(self) -> None:
         self.walls: dict[str, bool] = {
@@ -139,29 +141,29 @@ class MazeGenerator:
         rendered: str = ''
         for y in range(len(self.grid)):
             row = self.grid[y]
-            wall = f'{is_color[0]}{self._wall}{_end[ansi]}'
+            wall = f'\033[43m{is_color[0]}{self._wall}{_end[ansi]}'
             line1: str = ''
             line2: str = ''
             line3: str = ''
             for x in range(len(row)):
-                cell_floor = f'{is_color[1]}░'
+                cell_floor = '\033[43m '
                 cell: Cell = row[x]
                 decimal: int = int(cell.get_binary(), 2)
 
                 if decimal & 1:
                     cell.top = f'{wall * 5}'
                 else:
-                    cell.top = f'{wall}{cell_floor * 3}{wall}'
+                    cell.top = f'{wall}\033[43m{cell_floor * 3}{wall}'
 
                 if decimal & 2:
                     cell.right = f'{wall}'
                 else:
-                    cell.right = f'{cell_floor}'
+                    cell.right = f'\033[43m{cell_floor}'
 
                 if decimal & 8:
                     cell.left = f'{wall}'
                 else:
-                    cell.left = f'{cell_floor}'
+                    cell.left = f'\033[43m{cell_floor}'
 
                 if decimal & 4:
                     cell.bottom = f'{wall * 5}'
@@ -172,7 +174,7 @@ class MazeGenerator:
                 if (x, y) in self._path and (x,y) != self.entry:
                     bullet = (is_color[2] if self._mode == 1 else
                                 is_color[3]) +'●'
-                    c = f'{is_color[1]}░'
+                    c = ' '
                     dot = c + bullet + c
                     cell.bullet = f'{cell.left}{dot}{cell.right}'
 
@@ -184,10 +186,10 @@ class MazeGenerator:
                     f = cell_floor
                     cell_floor = f + f'{is_color[3]}█{_end[ansi]}' + f
 
-                if cell_floor == f'{is_color[1]}░':
+                if cell_floor == '\033[43m ':
                     cell_floor *= 3
 
-                cell.middle = f'{cell.left}{cell_floor}{cell.right}'
+                cell.middle = f'\033[43m{cell.left}{cell_floor}{cell.right}'
                 line1 += cell.top
                 line2 += cell.middle
                 line3 += cell.bottom
