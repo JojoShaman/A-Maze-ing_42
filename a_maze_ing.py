@@ -27,6 +27,7 @@ def run() -> None:
                     print('3) change wall type')
                     print('4) change maze size')
                     print('5) save rending in a file')
+                    print('6) Game')
                     print('-' * 10)
                     print('q: quit')
                     command = input('\nEnter command: ')
@@ -134,6 +135,10 @@ def run() -> None:
                 maze.save()
                 system('clear')
                 maze.render(update=True)
+                print(maze._display())
+            elif command == '6':
+                maze.play()
+                system('clear')
                 print(maze._display())
             elif command == 'q':
                 print('Program closed')

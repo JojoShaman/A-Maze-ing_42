@@ -5,8 +5,7 @@ from .colors import WHITE, BLACK, END, RED, BLUE, GREEN, MAGENTA, YELLOW, CYAN, 
 from collections import deque
 from time import sleep
 from os import system
-import sys, termios
-import re
+import sys, termios, tty
 
 class Pixel:
     def __init__(self) -> None:
@@ -102,8 +101,8 @@ class MazeGenerator:
         for _ in range(8):
             for win in winner:
                 print('\033[H', end='')
-                print(self._display())
-                print(win)
+                print(self._display().replace('\n', '\r\n'))
+                print(win.replace('\n', '\r\n'), end='')
                 sleep(0.1)
         system('clear')
 
@@ -158,8 +157,45 @@ class MazeGenerator:
                 maze += '\n'
         return maze
 
+    def get_path(self, is_new: bool = False, ansi_mode: int = 1) -> None:
+        is_ansi: list[list[str]] = [
+            [(''), (''), (''), ('')],
 
-    def render(self, ansi: int = 1, update: bool = False) -> None:
+            [(self._themes[self._mode][0]), (self._themes[self._mode][1]),
+            (self._themes[self._mode][2]), (self._themes[self._mode][3])]]
+        is_color: list[str] = [
+            (is_ansi[ansi_mode][0]), (is_ansi[ansi_mode][1]),
+            (is_ansi[ansi_mode][2]), (is_ansi[ansi_mode][3])
+        ]
+        
+        _end: list[str] = [
+            (''), (END)]
+        bullet = is_color[3] + '█'
+        for num, dot in enumerate(self._path):
+            neighbors_in_path = [
+                self._path[num + 1] if num + 1 < len(self._path) else None,
+                self._path[num - 1] if num - 1 >= 0 else None,
+            ]
+            x, y = dot
+            if ansi_mode == 1 and is_new == False:
+                print('\033[H', end='')
+                # sleep(0.0009)
+            cell = self.grid[y][x]
+            if dot != self.entry and dot != self.exit:
+                cell.matrix[1][1].pixel = bullet * 2 + _end[ansi_mode]
+            if cell.neighbors()['EAST'] in neighbors_in_path:
+                cell.matrix[1][2].pixel =  bullet * 2 + _end[ansi_mode]
+            if cell.neighbors()['WEST'] in neighbors_in_path:
+                cell.matrix[1][0].pixel =  bullet * 2 + _end[ansi_mode]
+            if cell.neighbors()['NORTH'] in neighbors_in_path:
+                cell.matrix[0][1].pixel = bullet * 2 + _end[ansi_mode]
+            if cell.neighbors()['SOUTH'] in neighbors_in_path:
+                cell.matrix[2][1].pixel = bullet * 2 + _end[ansi_mode]
+            
+            if is_new == False:
+                print(self._display())
+
+    def render(self, ansi: int = 1, update: bool = False, play: bool = False) -> None:
         is_ansi: list[list[str]] = [
             [(''), (''), (''), ('')],
 
@@ -231,35 +267,11 @@ class MazeGenerator:
                 if (x,y) == self.exit:
                     cell.matrix[1][1].pixel = en_ex[1] * 2 + _end[ansi]
 
-        if self._show == True:
-            bullet = is_color[3] + '█'
-            for num, dot in enumerate(self._path):
-                neighbors_in_path = [
-                    self._path[num + 1] if num + 1 < len(self._path) else None,
-                    self._path[num - 1] if num - 1 >= 0 else None,
-                ]
-                x, y = dot
-                if ansi == 1 and update == False:
-                    print('\033[H', end='')
-                    sleep(0.0009)
-                cell = self.grid[y][x]
-                if dot != self.entry and dot != self.exit:
-                    cell.matrix[1][1].pixel = bullet * 2 + _end[ansi]
-                if cell.neighbors()['EAST'] in neighbors_in_path:
-                    cell.matrix[1][2].pixel =  bullet * 2 + _end[ansi]
-                if cell.neighbors()['WEST'] in neighbors_in_path:
-                    cell.matrix[1][0].pixel =  bullet * 2 + _end[ansi]
-                if cell.neighbors()['NORTH'] in neighbors_in_path:
-                    cell.matrix[0][1].pixel = bullet * 2 + _end[ansi]
-                if cell.neighbors()['SOUTH'] in neighbors_in_path:
-                    cell.matrix[2][1].pixel = bullet * 2 + _end[ansi]
-                
-                if update == False:
-                    print(self._display())
-            
+        if self._show == True or play == True:
+            self.get_path(ansi_mode=ansi, is_new=update)
             system('clear')
-            if update == False:
-                self.display_win()
+            # if update == False:
+            #     self.display_win()
         termios.tcflush(sys.stdin, termios.TCIFLUSH)
 
 
@@ -385,3 +397,58 @@ class MazeGenerator:
 
     def _prims(self, x: int, y: int) -> None:
         ...
+
+    def play(self) -> None:
+        fd= sys.stdin.fileno()
+        old_setting = termios.tcgetattr(fd)
+
+        tty.setraw(sys.stdin)
+
+        x, y = self.entry
+        self._path = []
+        self._path.append(self.entry)
+        k = ''
+        j = str(sys.stdin.read(1))
+        if j == '\x1b':
+                k = str(sys.stdin.read(2))
+        system('clear')
+        while j != 'q':
+            if j == '\x1b':
+                if k == '[A':
+                    if self.grid[y][x].walls['N'] == False:
+                        y -= 1
+                elif k == '[B':
+                    if self.grid[y][x].walls['S'] == False:
+                        y += 1
+                elif k == '[D':
+                    if self.grid[y][x].walls['W'] == False:
+                        x -= 1
+                elif k == '[C':
+                    if self.grid[y][x].walls['E'] == False:
+                        x += 1
+            print('\033[H', end='')
+            if len(self._path) >= 2 and (x,y) == self._path[-2]:
+                self._path.pop()
+                self.render(update=True, play=False)
+                self.get_path(is_new=True)
+
+            if (x,y) not in self._path:
+                self._path.append((x, y))
+                self.render(update=True, play=False)
+                self.get_path(is_new=True)
+            
+            if (x,y) == self.exit:
+                self.display_win()
+                break
+
+            print(self._display().replace('\n', '\r\n'), end='')
+
+            j = str(sys.stdin.read(1))
+            if j == '\x1b':
+                k = sys.stdin.read(2)
+
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_setting)
+        # print("\r\033[0K up", end='')
+        # print("\r\033[0K down", end='')
+        # print("\r\033[0K left", end='')
+        # print("\r\033[0K right", end='')
