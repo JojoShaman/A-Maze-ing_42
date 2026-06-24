@@ -65,6 +65,8 @@ def run() -> None:
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
                 if theme_input == 'b':
+                    system('clear')
+                    print(maze._display())
                     continue
                 elif not theme_input:
                     system('clear')
