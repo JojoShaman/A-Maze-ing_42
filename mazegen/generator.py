@@ -405,6 +405,8 @@ class MazeGenerator:
 
         x, y = self.entry
         self._path = []
+        self.render(update=True)
+        print(self._display().replace('\n', '\r\n'), end='')
         self._path.append(self.entry)
         k = ''
         j = str(sys.stdin.read(1))
