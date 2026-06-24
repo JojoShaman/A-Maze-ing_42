@@ -15,6 +15,7 @@ def run() -> None:
             raise (e)
         maze._bfs(maze.entry, maze.exit)
         maze.render()
+        print(maze._display())
         while True:
             while True:
                 show_hide = 'hide path' if maze._show else 'show path'
@@ -38,10 +39,12 @@ def run() -> None:
             if not command:
                 system('clear')
                 maze.generate()
+                print(maze._display())
             elif command == '1':
                 maze._show = False if maze._show else True
                 system('clear')
                 maze.render()
+                print(maze._display())
             elif command == '2':
                 print(maze._themes[maze._mode][2])
                 maze.theme_menu()
@@ -67,9 +70,11 @@ def run() -> None:
                     system('clear')
                     maze._mode = 0
                     maze.render(update=True)
+                    print(maze._display())
                 else:
                     system('clear')
                     maze.render(update=True)
+                    print(maze._display())
 
             elif command == '3':
                 while True:
@@ -87,7 +92,8 @@ def run() -> None:
                         maze._wall = wall_input.strip()
                         break
                 system('clear')
-                maze.render() 
+                maze.render(update=True) 
+                print(maze._display())
             elif command == '4':
                 while True:
                     while True:
@@ -120,11 +126,13 @@ def run() -> None:
                     maze.exit = (maze.width - 1, maze.height - 1)
                     maze._show = False
                     maze.generate()
+                    print(maze._display())
                     break
             elif command == '5':
                 maze.save()
                 system('clear')
-                print(maze.display, end='')
+                maze.render(update=True)
+                print(maze._display())
             elif command == 'q':
                 print('Program closed')
                 return
