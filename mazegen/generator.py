@@ -255,8 +255,9 @@ class MazeGenerator:
                     cell.matrix[1][2].pixel =  bullet * 2 + _end[ansi]
                     cell.matrix[1][1].pixel = en_ex[i] + bullet * 3 +_end[ansi]
                 if cell.neighbors()['WEST'] in neighbors_in_path:
-                    cell.matrix[1][0].pixel = bullet * 2  +_end[ansi]
-                    cell.matrix[1][1].pixel = bullet * 3 + en_ex[i] + _end[ansi]
+                    cell.matrix[1][1].pixel =  bullet * 3 +  ' ' + _end[ansi]
+                    if cell.neighbors()['EAST'] in neighbors_in_path:
+                        cell.matrix[1][1].pixel = bullet * 4 + _end[ansi]
                 if cell.neighbors()['NORTH'] in neighbors_in_path:
                     cell.matrix[0][1].pixel = ' ' + bullet * 2 + ' ' + _end[ansi]
                 if cell.neighbors()['SOUTH'] in neighbors_in_path:
