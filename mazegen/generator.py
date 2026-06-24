@@ -175,8 +175,8 @@ class MazeGenerator:
             (''), (END)]
 
         en_ex: list[str] = [
-            is_color[2] +'██',
-            is_color[3] +'██',
+            is_color[2] +'█',
+            is_color[3] +'█',
             ' '
         ]
         for y in range(len(self.grid)):
@@ -191,12 +191,12 @@ class MazeGenerator:
                 for matrix_col in range(3):
                     if decimal & 1:
                         if matrix_col == 1:
-                            cell.matrix[0][matrix_col].pixel = f'{wall * 4}{_end[ansi]}'
+                            cell.matrix[0][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
                         else:
                             cell.matrix[0][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
                     else:
                         if matrix_col == 1:
-                            cell.matrix[0][matrix_col].pixel = cell_floor * 4
+                            cell.matrix[0][matrix_col].pixel = cell_floor * 2
                         else:
                             cell.matrix[0][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
                     if decimal & 2:
@@ -211,14 +211,14 @@ class MazeGenerator:
 
                     if decimal & 4:
                         if matrix_col == 1:
-                            cell.matrix[2][matrix_col].pixel = f'{wall * 4}{_end[ansi]}'
+                            cell.matrix[2][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
                         else:
                             cell.matrix[2][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
 
                     if decimal == 15:
-                        cell.matrix[1][matrix_col].pixel = f'{wall * 3}{_end[ansi]}'
+                        cell.matrix[1][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
                     else:
-                        cell.matrix[1][1].pixel = cell_floor * 4
+                        cell.matrix[1][1].pixel = cell_floor * 2
                     cell.matrix[0][matrix_col].bg = background
                     cell.matrix[1][2].bg = background
                     cell.matrix[1][0].bg = background
@@ -226,10 +226,10 @@ class MazeGenerator:
                     cell.matrix[1][matrix_col].bg = background
 
                 if (x,y) == self.entry:
-                    cell.matrix[1][1].pixel = ' ' + en_ex[0] + ' ' + _end[ansi]
+                    cell.matrix[1][1].pixel = en_ex[0] * 2 + _end[ansi]
 
                 if (x,y) == self.exit:
-                    cell.matrix[1][1].pixel = ' ' + en_ex[1] + ' ' + _end[ansi]
+                    cell.matrix[1][1].pixel = en_ex[1] * 2 + _end[ansi]
 
         if self._show == True:
             bullet = is_color[3] + '█'
@@ -244,24 +244,15 @@ class MazeGenerator:
                     sleep(0.0009)
                 cell = self.grid[y][x]
                 if dot != self.entry and dot != self.exit:
-                    cell.matrix[1][1].pixel = ' ' + bullet * 2 + ' ' + _end[ansi]
-                if dot == self.entry:
-                    i = 0
-                elif dot == self.exit:
-                    i = 1
-                else:
-                    i = 2
+                    cell.matrix[1][1].pixel = bullet * 2 + _end[ansi]
                 if cell.neighbors()['EAST'] in neighbors_in_path:
                     cell.matrix[1][2].pixel =  bullet * 2 + _end[ansi]
-                    cell.matrix[1][1].pixel = en_ex[i] + bullet * 3 +_end[ansi]
                 if cell.neighbors()['WEST'] in neighbors_in_path:
-                    cell.matrix[1][1].pixel =  bullet * 3 +  ' ' + _end[ansi]
-                    if cell.neighbors()['EAST'] in neighbors_in_path:
-                        cell.matrix[1][1].pixel = bullet * 4 + _end[ansi]
+                    cell.matrix[1][0].pixel =  bullet * 2 + _end[ansi]
                 if cell.neighbors()['NORTH'] in neighbors_in_path:
-                    cell.matrix[0][1].pixel = ' ' + bullet * 2 + ' ' + _end[ansi]
+                    cell.matrix[0][1].pixel = bullet * 2 + _end[ansi]
                 if cell.neighbors()['SOUTH'] in neighbors_in_path:
-                    cell.matrix[2][1].pixel = ' ' + bullet * 2 + ' ' + _end[ansi]
+                    cell.matrix[2][1].pixel = bullet * 2 + _end[ansi]
                 
                 if update == False:
                     print(self._display())
