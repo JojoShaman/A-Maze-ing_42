@@ -298,16 +298,15 @@ class MazeGenerator:
         self.saved()
     
     def theme_menu(self) -> None:
-        print((' ' * 11) + '╭' + ('-' * 12) + '╮')
-        print((' ' * 11) + '| ' + '* THEMES * |')
-        print((' ' * 11) + '╰' + ('-' * 12) + '╯' + '\n')
-        print((' ' * 10) + 'enter) default theme')
-        print((' ' * 10) + '1) sao paolo theme')
-        print((' ' * 10) + '2) Orange is the new black theme')
-        print((' ' * 10) + '3) BubbleGum theme')
-        print((' ' * 10) + '4) Snake theme')
-        print((' ' * 10) + '-' * 10)
-        print((' ' * 10) + 'b) go back', END)
+        print((' ' * 20) + '┏' + ('━' * 12) + '┓')
+        print((' ' * 20) + '┃ ' + '* THEMES * ┃')
+        print((' ' * 20) + '┗' + ('━' * 12) + '┛' + '\n')
+        print((' ' * 18) + '↵    Default')
+        print((' ' * 18) + '1    Sao Paolo')
+        print((' ' * 18) + '2    Bumblebee')
+        print((' ' * 18) + '3    Cotton Candy')
+        print((' ' * 18) + '4    Snake\n')
+        print((' ' * 18) + 'b    go back', END)
     
     def generate(self) -> None:
         self._dfs()

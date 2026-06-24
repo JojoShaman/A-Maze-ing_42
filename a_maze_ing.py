@@ -20,17 +20,24 @@ def run() -> None:
             while True:
                 show_hide = 'hide path' if maze._show else 'show path'
                 try:
+                    s = ' ' * 4
+                    nb = maze._themes[maze._mode][2]
+                    colo = maze._themes[maze._mode][0]
                     print(f'\n{maze._themes[maze._mode][0]}', end='')
-                    print('enter: regenerate maze')
-                    print(f'1) {show_hide}')
-                    print('2) maze theme')
-                    print('3) change wall type')
-                    print('4) change maze size')
-                    print('5) save rending in a file')
-                    print('6) Game')
-                    print('-' * 10)
-                    print('q: quit')
-                    command = input('\nEnter command: ')
+                    print(f'{s}┏{'━' * 9}  A-Maze-ing  {'━' * 9}┓')
+                    print(f'{s}┃{' ' * 32}┃')
+                    print(f'{s}┃{s}{nb}↵{s}{colo}regenerate maze{' ' * 8}┃')
+                    print(f'{s}┃{s}{nb}1{s}{colo}{show_hide}{' ' * 14}┃')
+                    print(f'{s}┃{s}{nb}2{s}{colo}maze theme{' ' * 13}┃')
+                    print(f'{s}┃{s}{nb}3{s}{colo}change wall type{' ' * 7}┃')
+                    print(f'{s}┃{s}{nb}4{s}{colo}change maze size{' ' * 7}┃')
+                    print(f'{s}┃{s}{nb}5{s}{colo}save rending{' ' * 11}┃')
+                    print(f'{s}┃{s}{nb}6{s}{colo}Game{' ' * 19}┃')
+                    print(f'{s}┃{' ' * 32}┃')
+                    print(f'{s}┃{s}{nb}q{s}{colo}quit{' ' * 19}┃')
+                    print(f'{s}┃{' ' * 32}┃')
+                    print(f'{s}┗{'━' * 32}┛')
+                    command = input(f'\n{' ' * 5}Enter command: ')
                     break
                 except KeyboardInterrupt:
                     error = True
@@ -53,7 +60,7 @@ def run() -> None:
                     try:
                         print(maze._themes[maze._mode][0])
                         theme_input = input(
-                            (' ' * 10) + 'Chose your theme: ')
+                            (' ' * 18) + 'Chose your theme: ')
                         if not theme_input or theme_input == 'b':
                             break
                         if int(theme_input) <= 4:
