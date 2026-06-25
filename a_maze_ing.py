@@ -147,6 +147,7 @@ def run() -> None:
                 maze.play()
                 system('clear')
                 print(maze._display())
+                maze._bfs(maze.entry, maze.exit)
             elif command == 'q':
                 print('Program closed')
                 return
