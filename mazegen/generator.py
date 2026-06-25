@@ -398,6 +398,7 @@ class MazeGenerator:
         ...
 
     def play(self) -> None:
+        system('clear')
         fd= sys.stdin.fileno()
         old_setting = termios.tcgetattr(fd)
 
