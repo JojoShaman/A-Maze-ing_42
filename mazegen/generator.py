@@ -63,15 +63,21 @@ class MazeGenerator:
                 ]
     
 
-    def display_win(self) -> None:
+    def lose_win(self, result: str) -> None:
         space: str = ''
-        if ((self.width * 4) - 60) > 0:
-            space += ' ' * (((self.width * 4) - 64) // 2)
+        if result == 'win':
+            space = ''.join(' ' * (((self.width * 4) - 64) // 2)
+                            if ((self.width * 4) - 64) > 0 else '')
+        else:
+            space = ''.join(' ' * (((self.width * 4) - 74) // 2)
+                            if ((self.width * 4) - 74) > 0 else '')
         w = self._wall
+        colors: list[str] = [
+            self._themes[self._mode][0],
+            self._themes[self._mode][3]
+        ]
         self.render(1, True)
-        winner: list[str] = [
-            (
-                f'{self._themes[self._mode][0]}' +
+        win = (
                 f'{space} {w * 2}╗   {w * 2}╗ {w * 6}╗ {w * 2}╗   {w * 2}╗     ' +
                 f'{w * 2}╗    {w * 2}╗{w * 2}╗{w * 3}╗   {w * 2}╗  {w * 2}╗\n' + 
                 f'{space} ╚{w * 2}╗ {w * 2}╔╝{w * 2}╔═══{w * 2}╗{w * 2}║   {w * 2}║   ' +
@@ -83,26 +89,31 @@ class MazeGenerator:
                 f'{space}    {w * 2}║   ╚{w * 6}╔╝╚{w * 6}╔╝     ╚{w * 3}╔{w * 3}' +
                 f'╔╝{w * 2}║{w * 2}║ ╚{w * 4}║  {w * 2}╗\n' +
                 f'{space}    ╚═╝    ╚═════╝  ╚═════╝       ╚══╝╚══╝ ' +
-                '╚═╝╚═╝  ╚═══╝  ╚═╝\n' + END),
-            (
-                f'{self._themes[self._mode][3]}'
-                f'{space} {w * 2}╗   {w * 2}╗ {w * 6}╗ {w * 2}╗   {w * 2}╗     ' +
-                f'{w * 2}╗    {w * 2}╗{w * 2}╗{w * 3}╗   {w * 2}╗  {w * 2}╗\n' + 
-                f'{space} ╚{w * 2}╗ {w * 2}╔╝{w * 2}╔═══{w * 2}╗{w * 2}║   {w * 2}║   ' +
-                f'  {w * 2}║    {w * 2}║{w * 2}║{w * 4}╗  {w * 2}║  {w * 2}║\n' +
-                f'{space}  ╚{w * 4}╔╝ {w * 2}║   {w * 2}║{w * 2}║   {w * 2}║    ' +
-                f' {w * 2}║ {w}╗ {w * 2}║{w * 2}║{w * 2}╔{w * 2}╗ {w * 2}║  {w * 2}║\n' +
-                f'{space}   ╚{w * 2}╔╝  {w * 2}║   {w * 2}║{w * 2}║   {w * 2}║  ' +
-                f'   {w * 2}║{w * 3}╗{w * 2}║{w * 2}║{w * 2}║╚{w * 2}╗{w * 2}║  ╚═╝\n' +
-                f'{space}    {w * 2}║   ╚{w * 6}╔╝╚{w * 6}╔╝     ╚{w * 3}╔{w * 3}' +
-                f'╔╝{w * 2}║{w * 2}║ ╚{w * 4}║  {w * 2}╗\n' +
-                f'{space}    ╚═╝    ╚═════╝  ╚═════╝       ╚══╝╚══╝ ' +
-                '╚═╝╚═╝  ╚═══╝  ╚═╝\n')]
+                '╚═╝╚═╝  ╚═══╝  ╚═╝\n' + END)
+        
+        lose = (
+                f'{space} {w*6}╗  {w*5}╗ {w*3}╗   {w*3}╗{w*7}╗     {w*6}╗ {w*2}╗   ' +
+                f'{w*2}╗{w*7}╗{w*6}╗ \n' +
+                f'{space}{w*2}╔════╝ {w*2}╔══{w*2}╗{w*4}╗ {w*4}║{w*2}╔════╝    {w*2}' +
+                f'╔═══{w*2}╗{w*2}║   {w*2}║{w*2}╔════╝{w*2}╔══{w*2}╗\n' +
+                f'{space}{w*2}║  {w*3}╗{w*7}║{w*2}╔{w*4}╔{w*2}║{w*5}╗      {w*2}║   ' +
+                f'{w*2}║{w*2}║   {w*2}║{w*5}╗  {w*6}╔╝\n' +
+                f'{space}{w*2}║   {w*2}║{w*2}╔══{w*2}║{w*2}║╚{w*2}╔╝{w*2}║{w*2}╔══╝   '
+                f'   {w*2}║   {w*2}║╚{w*2}╗ {w*2}╔╝{w*2}╔══╝  {w*2}╔══{w*2}╗\n' +
+                f'{space}╚{w*6}╔╝{w*2}║  {w*2}║{w*2}║ ╚═╝ {w*2}║{w*7}╗    ╚{w*6}╔╝ ' +
+                f'╚{w*4}╔╝ {w*7}╗{w*2}║  {w*2}║\n' +
+                f'{space} ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝   ╚═══╝  ' +
+                f'╚══════╝╚═╝  ╚═╝\n' + END)
+        
+        res: dict[str, str] = {
+            'win': f'{win}',
+            'lose': f'{lose}'}
+        
         for _ in range(8):
-            for win in winner:
+            for x in range(2):
                 print('\033[H', end='')
                 print(self._display().replace('\n', '\r\n'))
-                print(win.replace('\n', '\r\n'), end='')
+                print((colors[x] + res[result]).replace('\n', '\r\n'), end='')
                 sleep(0.1)
         system('clear')
 
@@ -397,7 +408,7 @@ class MazeGenerator:
     def _prims(self, x: int, y: int) -> None:
         ...
 
-    def play(self) -> None:
+    def play(self, mode: str = 'hard') -> None:
         system('clear')
         fd= sys.stdin.fileno()
         old_setting = termios.tcgetattr(fd)
@@ -406,6 +417,7 @@ class MazeGenerator:
 
         x, y = self.entry
         self._path = []
+        direction_map = {'N': 'NORTH', 'S': 'SOUTH', 'E': 'EAST', 'W': 'WEST'}
         self.render(update=True)
         print(self._display().replace('\n', '\r\n'), end='')
         self._path.append(self.entry)
@@ -414,43 +426,64 @@ class MazeGenerator:
         if j == '\x1b':
                 k = str(sys.stdin.read(2))
         system('clear')
-        while j != 'q':
-            if j == '\x1b':
-                if k == '[A':
-                    if self.grid[y][x].walls['N'] == False:
-                        y -= 1
-                elif k == '[B':
-                    if self.grid[y][x].walls['S'] == False:
-                        y += 1
-                elif k == '[D':
-                    if self.grid[y][x].walls['W'] == False:
-                        x -= 1
-                elif k == '[C':
-                    if self.grid[y][x].walls['E'] == False:
-                        x += 1
-            print('\033[H', end='')
-            if len(self._path) >= 2 and (x,y) == self._path[-2]:
-                self._path.pop()
-                self.render(update=True, play=False)
-                self.get_path(is_new=True)
+        try:
+            while j != 'q':
+                if j == '\x1b':
+                    if k == '[A':
+                        if self.grid[y][x].walls['N'] == False:
+                            if (x,y-1) in self._path and mode == 'hard':
+                                ...
+                            else:
+                                y -= 1
+                    elif k == '[B':
+                        if self.grid[y][x].walls['S'] == False:
+                            if (x,y+1) in self._path and mode == 'hard':
+                                ...
+                            else:
+                                y += 1
+                    elif k == '[D':
+                        if self.grid[y][x].walls['W'] == False:
+                            if (x-1,y) in self._path and mode == 'hard':
+                                ...
+                            else:
+                                x -= 1
+                    elif k == '[C':
+                        if self.grid[y][x].walls['E'] == False:
+                            if (x+1,y) in self._path and mode == 'hard':
+                                ...
+                            else:
+                                x += 1
+                            
+                print('\033[H', end='')
+                if len(self._path) >= 2 and (x,y) == self._path[-2]:
+                    if mode == 'easy':
+                        self._path.pop()
+                    self.render(update=True, play=False)
+                    self.get_path(is_new=True)
 
-            if (x,y) not in self._path:
-                self._path.append((x, y))
-                self.render(update=True, play=False)
-                self.get_path(is_new=True)
-            
-            if (x,y) == self.exit:
-                self.display_win()
-                break
+                if (x,y) not in self._path:
+                    self._path.append((x, y))
+                    self.render(update=True, play=False)
+                    self.get_path(is_new=True)
+                
+                game_over = True
+                for direction, wall in self.grid[y][x].walls.items():
+                    pos = self.grid[y][x].neighbors()[direction_map[direction]]
+                    if not wall and pos not in self._path:
+                        game_over = False
+                        break
+                
+                if (x,y) == self.exit:
+                    self.lose_win(result='win')
+                    break
 
-            print(self._display().replace('\n', '\r\n'), end='')
+                if game_over == True and (x, y) != self.exit:
+                    self.lose_win(result='lose')
+                    break
+                print(self._display().replace('\n', '\r\n'), end='')
 
-            j = str(sys.stdin.read(1))
-            if j == '\x1b':
-                k = sys.stdin.read(2)
-
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_setting)
-        # print("\r\033[0K up", end='')
-        # print("\r\033[0K down", end='')
-        # print("\r\033[0K left", end='')
-        # print("\r\033[0K right", end='')
+                j = str(sys.stdin.read(1))
+                if j == '\x1b':
+                    k = sys.stdin.read(2)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_setting)
