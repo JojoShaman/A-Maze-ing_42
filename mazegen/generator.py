@@ -1,5 +1,5 @@
 from . import Parsing
-from random import choice
+from random import choice, randint
 from functools import reduce
 from .colors import WHITE, BLACK, END, RED, BLUE, GREEN, MAGENTA, YELLOW, CYAN, ORANGE, BG_GREEN, BG_BLUE, BG_MAGENTA, BG_BLACK
 from collections import deque
@@ -53,6 +53,7 @@ class MazeGenerator:
         self._path: list[tuple[int, int]] = []
         self._show = False
         self._wall = '█'
+        self._animation: bool = False
         self._mode = 0
         self._themes: list[list[str]] = [
                 [WHITE, BG_BLUE, RED, GREEN],
@@ -61,6 +62,12 @@ class MazeGenerator:
                 [CYAN, BG_MAGENTA, YELLOW, YELLOW],
                 [GREEN, BG_BLUE, RED, RED]
                 ]
+        self._pattern42: list[tuple] = [
+            (0, 0), (0,1), (0,2), (1,2), (2,2),
+            (2,3), (2,4), #4
+            (4, 0), (5, 0), (6, 0), (6, 1), (6, 2),
+            (5, 2), (4,2), (4,3), (4,4), (5,4), (6, 4) #2
+        ]
     
 
     def lose_win(self, result: str) -> None:
@@ -128,9 +135,19 @@ class MazeGenerator:
         neighbors = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
         for nx, ny in neighbors:
             if (nx >= 0 and nx < self.width) and (ny >= 0 and ny < self.height):
-                if not cell[ny][nx].visited:
+                if not cell[ny][nx].visited and not cell[ny][nx].static:
                     unvisited.append((nx, ny))
         return unvisited
+    
+    def get_visited(self, x: int, y: int) -> list[tuple[int, int]]:
+        visited: list[tuple] = []
+        cell = self.grid
+        neighbors = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
+        for nx, ny in neighbors:
+            if (nx >= 0 and nx < self.width) and (ny >= 0 and ny < self.height):
+                if cell[ny][nx].visited and not cell[ny][nx].static:
+                    visited.append((nx, ny))
+        return visited
     
     def get_grid(self) -> None:
         self.grid = [[Cell() for _ in range(self.width)] for _ in range(self.height)]
@@ -324,46 +341,82 @@ class MazeGenerator:
         print((' ' * 18) + 'b    go back', END)
     
     def generate(self) -> None:
-        self._dfs()
+        if self.algorythm == 'dfs':
+            self._dfs()
+        else:
+            self.prim()
         self._path = []
         self._bfs(self.entry, self.exit)
         self.render()
 
-    def _dfs(self) -> None:
-        '''Depth-first search (DFS) is an algorithm used to traverse 
-        or search through a data structure, such as a graph or tree.'''
-        self.get_grid()
-        stack: list[tuple] = []
-        stack.append(self.entry)
+    def lock_42(self) -> None:
         cell = self.grid
-        cell[self.entry[1]][self.entry[0]].visited = True
         offset_x = (self.width - 7) // 2
         offset_y = (self.height - 5) // 2
-        pattern42: list[tuple] = [
-            (0, 0), (0,1), (0,2), (1,2), (2,2),
-            (2,3), (2,4), #4
-            (4, 0), (5, 0), (6, 0), (6, 1), (6, 2),
-            (5, 2), (4,2), (4,3), (4,4), (5,4), (6, 4) #2
-        ]
-        for rel_x, rel_y in pattern42:
+        for rel_x, rel_y in self._pattern42:
             tx: int = offset_x + rel_x
             ty: int = offset_y + rel_y
             if tx == self.entry[0] and ty == self.entry[1] or tx == self.exit[0] and ty == self.exit[1]:
                 raise Exception(f'{RED}Entry & Exit must not be in 42 position{END}')
             cell[ty][tx].static = True
             cell[ty][tx].visited = True
+    
+    def _dfs(self) -> None:
+        '''Depth-first search (DFS) is an algorithm used to traverse 
+        or search through a data structure, such as a graph or tree.'''
+        self.get_grid()
+        self.lock_42()
+        stack: list[tuple] = []
+        stack.append(self.entry)
+        cell = self.grid
+        cell[self.entry[1]][self.entry[0]].visited = True
         while stack:
             x, y = stack[-1]
             neighbors = self.get_unvisited(x, y)
             if neighbors:
                 n = choice(neighbors)
-                if not cell[n[1]][n[0]].static:
-                    self.knock_wall(x, y, n[0], n[1])
+                # if not cell[n[1]][n[0]].static:
+                self.knock_wall(x, y, n[0], n[1])
                 cell[n[1]][n[0]].visited = True
                 stack.append(n)
 
             else:
                 stack.pop()
+            if self._animation == True:
+                print('\033[H', end='')
+                self.render()
+                print(self._display())
+                sleep(0.001)
+        system('clear')
+
+
+    def prim(self) -> None:
+        self.get_grid()
+        self.lock_42()
+        frontiers: list[tuple[int, int]] = []
+        cell = self.grid
+        while True:
+            x = randint(0, self.width - 1)
+            y = randint(0, self.height - 1)
+            if cell[y][x].static:
+                continue
+            break
+        cell[y][x].visited = True
+        frontiers.extend(self.get_unvisited(x, y))
+        while frontiers:
+            n = choice(frontiers)
+            frontiers.remove(n)
+            v= choice(self.get_visited(n[0], n[1]))
+            self.knock_wall(n[0], n[1], v[0], v[1])
+            cell[n[1]][n[0]].visited = True
+            frontiers.extend([c for c in self.get_unvisited(n[0], n[1]) if
+                              c not in frontiers])
+            if self._animation == True:
+                print('\033[H', end='')
+                self.render()
+                print(self._display())
+                sleep(0.001)
+        system('clear')
 
 
     def _bfs(self, entry: tuple[int, int], exit: tuple[int, int]) -> None:
@@ -408,9 +461,6 @@ class MazeGenerator:
             p.append(current)
         self._path = list(reversed(p))
 
-
-    def _prims(self, x: int, y: int) -> None:
-        ...
 
     def play(self, mode: str = 'hard') -> None:
         system('clear')

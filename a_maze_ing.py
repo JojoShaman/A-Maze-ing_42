@@ -10,15 +10,15 @@ def run() -> None:
     try:
         error = False
         try:
-            maze._dfs()
+            maze.algorythm = 'prim'
+            maze.generate()
+            print(maze._display())
         except Exception as e:
             raise (e)
-        maze._bfs(maze.entry, maze.exit)
-        maze.render()
-        print(maze._display())
         while True:
             while True:
                 show_hide = 'hide path' if maze._show else 'show path'
+                animation = 'Turn off' if maze._animation else 'Turn on'
                 try:
                     s = ' ' * 4
                     space = ' '
@@ -34,6 +34,8 @@ def run() -> None:
                     print(f'{s}┃{s}{nb}4{s}{colo}change maze size{space * 7}┃')
                     print(f'{s}┃{s}{nb}5{s}{colo}save rending{space * 11}┃')
                     print(f'{s}┃{s}{nb}6{s}{colo}Game{space * 19}┃')
+                    print(f'{s}┃{s}{nb}7{s}{colo}{animation} ' +
+                          f'animation{space * 5 if maze._animation else space * 6}┃')
                     print(f'{s}┃{space * 32}┃')
                     print(f'{s}┃{s}{nb}q{s}{colo}quit{space * 19}┃')
                     print(f'{s}┃{space * 32}┃')
@@ -51,6 +53,8 @@ def run() -> None:
                 print(maze._display())
             elif command == '1':
                 maze._show = False if maze._show else True
+                if maze._animation:
+                    maze._animation = False
                 system('clear')
                 maze.render()
                 print(maze._display())
@@ -149,11 +153,19 @@ def run() -> None:
                 system('clear')
                 print(maze._display())
                 maze._bfs(maze.entry, maze.exit)
+            elif command == '7':
+                maze._animation = False if maze._animation else True
+                if maze._show:
+                    maze._show = False
+                system('clear')
+                print(maze._display())
+                continue
             elif command == 'q':
                 print('Program closed')
                 return
             else:
                 print('please enter valid input')
+    
     except Exception as e:
         print(e)
     except KeyboardInterrupt:
