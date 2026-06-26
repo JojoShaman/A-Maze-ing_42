@@ -109,13 +109,17 @@ class MazeGenerator:
             'win': f'{win}',
             'lose': f'{lose}'}
         
-        for _ in range(8):
+        for loops in range(8):
             for x in range(2):
                 print('\033[H', end='')
                 print(self._display().replace('\n', '\r\n'))
                 print((colors[x] + res[result]).replace('\n', '\r\n'), end='')
-                sleep(0.1)
-        system('clear')
+                if result == 'win':
+                    sleep(0.1)
+                else:
+                    sleep(0.3)
+                    if loops == 3:
+                        return
 
 
     def get_unvisited(self, x: int, y: int) -> list[tuple[int, int]]:
