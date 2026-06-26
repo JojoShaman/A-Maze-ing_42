@@ -328,17 +328,7 @@ class MazeGenerator:
         with open (self.output_file, 'w') as file:
             file.write(self._display())
         self.saved()
-    
-    def theme_menu(self) -> None:
-        print((' ' * 20) + '┏' + ('━' * 12) + '┓')
-        print((' ' * 20) + '┃ ' + '* THEMES * ┃')
-        print((' ' * 20) + '┗' + ('━' * 12) + '┛' + '\n')
-        print((' ' * 18) + '↵    Default')
-        print((' ' * 18) + '1    Sao Paolo')
-        print((' ' * 18) + '2    Bumblebee')
-        print((' ' * 18) + '3    Cotton Candy')
-        print((' ' * 18) + '4    Snake\n')
-        print((' ' * 18) + 'b    go back', END)
+
     
     def generate(self) -> None:
         if self.algorythm == 'dfs':
@@ -462,7 +452,7 @@ class MazeGenerator:
         self._path = list(reversed(p))
 
 
-    def play(self, mode: str = 'hard') -> None:
+    def play(self, mode: str = 'easy') -> None:
         system('clear')
         fd= sys.stdin.fileno()
         old_setting = termios.tcgetattr(fd)

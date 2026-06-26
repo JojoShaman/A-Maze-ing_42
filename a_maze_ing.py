@@ -4,13 +4,13 @@ from mazegen.colors import RED, END
 import sys
 from os import system
 from time import sleep
+from mazegen import menu
 
 def run() -> None:
     maze = MazeGenerator(parsed)
     try:
         error = False
         try:
-            maze.algorythm = 'prim'
             maze.generate()
             print(maze._display())
         except Exception as e:
@@ -20,27 +20,8 @@ def run() -> None:
                 show_hide = 'hide path' if maze._show else 'show path'
                 animation = 'Turn off' if maze._animation else 'Turn on'
                 try:
-                    s = ' ' * 4
-                    space = ' '
-                    nb = maze._themes[maze._mode][2]
-                    colo = maze._themes[maze._mode][0]
-                    print(f'\n{maze._themes[maze._mode][0]}', end='')
-                    print(f'{s}┏{"━" * 9}  A-Maze-ing  {"━" * 9}┓')
-                    print(f'{s}┃{space * 32}┃')
-                    print(f'{s}┃{s}{nb}↵{s}{colo}regenerate maze{space * 8}┃')
-                    print(f'{s}┃{s}{nb}1{s}{colo}{show_hide}{space * 14}┃')
-                    print(f'{s}┃{s}{nb}2{s}{colo}maze theme{space * 13}┃')
-                    print(f'{s}┃{s}{nb}3{s}{colo}change wall type{space * 7}┃')
-                    print(f'{s}┃{s}{nb}4{s}{colo}change maze size{space * 7}┃')
-                    print(f'{s}┃{s}{nb}5{s}{colo}save rending{space * 11}┃')
-                    print(f'{s}┃{s}{nb}6{s}{colo}Game{space * 19}┃')
-                    print(f'{s}┃{s}{nb}7{s}{colo}{animation} ' +
-                          f'animation{space * 5 if maze._animation else space * 6}┃')
-                    print(f'{s}┃{space * 32}┃')
-                    print(f'{s}┃{s}{nb}q{s}{colo}quit{space * 19}┃')
-                    print(f'{s}┃{space * 32}┃')
-                    print(f'{s}┗{"━" * 32}┛')
-                    command = input(f'\n{space * 5}Enter command: ')
+                    menu.user(maze, show_hide, animation)
+                    command = input(f'\n{' ' * 5}Enter command: ')
                     break
                 except KeyboardInterrupt:
                     error = True
@@ -51,6 +32,29 @@ def run() -> None:
                 system('clear')
                 maze.generate()
                 print(maze._display())
+            elif command == '0':
+                menu.algo(maze.algorythm, maze._themes[maze._mode][2])
+                while True:
+                    print(maze._themes[maze._mode][0])
+                    algo_input = input(
+                        (' ' * 20) + 'Chose your generator: ')
+                    if (algo_input == '0' or
+                        algo_input == '1' or
+                        algo_input == 'b'):
+                        break
+                    else:
+                        print('please enter valid input')
+                if algo_input == '0':
+                    maze.algorythm = (
+                        'dfs' if maze.algorythm == 'prim' else 'dfs')
+                elif algo_input == '1':
+                    maze.algorythm = (
+                        'prim' if maze.algorythm == 'dfs' else 'prim')
+                elif algo_input == 'b':
+                    ...
+                system('clear')
+                print(maze._display())
+
             elif command == '1':
                 maze._show = False if maze._show else True
                 if maze._animation:
@@ -60,7 +64,7 @@ def run() -> None:
                 print(maze._display())
             elif command == '2':
                 print(maze._themes[maze._mode][2])
-                maze.theme_menu()
+                menu.theme()
                 while True:
                     try:
                         print(maze._themes[maze._mode][0])
@@ -77,19 +81,16 @@ def run() -> None:
                         print('please enter valid input')
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
+                system('clear')
                 if theme_input == 'b':
-                    system('clear')
                     print(maze._display())
                     continue
                 elif not theme_input:
-                    system('clear')
                     maze._mode = 0
                     maze.render(update=True)
-                    print(maze._display())
                 else:
-                    system('clear')
                     maze.render(update=True)
-                    print(maze._display())
+                print(maze._display())
 
             elif command == '3':
                 while True:
@@ -149,7 +150,28 @@ def run() -> None:
                 maze.render(update=True)
                 print(maze._display())
             elif command == '6':
-                maze.play()
+                gm: dict = {
+                    '0': 'easy',
+                    '1': 'hard'
+                }
+                menu.game_mode(maze._themes, maze._mode)
+                while True:
+                    try:
+                        game_mode_input = input(
+                                    (' ' * 18) + 'Chose your gaming mode: ')
+                        if (game_mode_input == '0' or
+                            game_mode_input == '1' or
+                            game_mode_input == 'b'):
+                            break
+                        else:
+                            print('please enter valid input')
+                    except KeyboardInterrupt:
+                        raise KeyboardInterrupt
+                if game_mode_input == 'b':
+                    system('clear')
+                    print(maze._display())
+                    continue
+                maze.play(mode=gm[game_mode_input])
                 system('clear')
                 print(maze._display())
                 maze._bfs(maze.entry, maze.exit)
