@@ -1,11 +1,9 @@
 from mazegen.generator import MazeGenerator
 from mazegen.parsing import Parsing
-from mazegen.colors import RED, END
+from mazegen.colors import _theme
 import sys
 from os import system
-from time import sleep
 from mazegen import menu
-from random import choice, randint
 
 
 def run() -> None:
@@ -29,14 +27,15 @@ def run() -> None:
                 maze.generate()
                 print(maze._display())
             elif command == '0':
-                menu.algo(maze.algorythm, maze._themes[maze._mode][2])
+                menu.algo(maze.algorythm, _theme[maze._mode][2])
                 while True:
-                    print(maze._themes[maze._mode][0])
+                    print(_theme[maze._mode][0])
                     algo_input = input(
                         (' ' * 20) + 'Chose your generator: ')
                     if (algo_input == '0' or
                         algo_input == '1' or
-                        algo_input == 'b'):
+                        algo_input == 'b' or
+                            not algo_input):
                         break
                     else:
                         print('please enter valid input')
@@ -46,7 +45,7 @@ def run() -> None:
                 elif algo_input == '1':
                     maze.algorythm = (
                         'prim' if maze.algorythm == 'dfs' else 'prim')
-                elif algo_input == 'b':
+                elif algo_input == 'b' or not algo_input:
                     ...
 
                 system('clear')
@@ -60,11 +59,11 @@ def run() -> None:
                 maze.render()
                 print(maze._display())
             elif command == '2':
-                print(maze._themes[maze._mode][2])
+                print(_theme[maze._mode][2])
                 menu.theme()
                 while True:
                     try:
-                        print(maze._themes[maze._mode][0])
+                        print(_theme[maze._mode][0])
                         theme_input = input(
                             (' ' * 18) + 'Chose your theme: ')
                         if not theme_input or theme_input == 'b':
@@ -105,7 +104,7 @@ def run() -> None:
                         maze._wall = wall_input.strip()
                         break
                 system('clear')
-                maze.render(update=True) 
+                maze.render(update=True)
                 print(maze._display())
             elif command == '4':
                 maze.save()
@@ -122,7 +121,7 @@ def run() -> None:
                     '0': 'easy',
                     '1': 'hard'
                 }
-                menu.game_mode(maze._themes, maze._mode, maze._g_mode)
+                menu.game_mode(maze._mode, maze._g_mode)
                 while True:
                     try:
                         gm_input = input(
@@ -132,7 +131,7 @@ def run() -> None:
                         if (gm_input == '0' or
                             gm_input == '1' or
                             gm_input == 'b' or
-                            not gm_input):
+                                not gm_input):
                             break
                         else:
                             print('please enter valid input')
@@ -160,11 +159,12 @@ def run() -> None:
                 return
             else:
                 print('please enter valid input')
-    
+
     except Exception as e:
         print(e)
     except KeyboardInterrupt:
         print('\nCtrl+c detected: Program closed', end='')
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

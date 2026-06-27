@@ -1,19 +1,22 @@
-from . import Parsing
-from random import choice, randint
-from functools import reduce
-from .colors import WHITE, BLACK, END, RED, BLUE, GREEN, MAGENTA, YELLOW, CYAN, ORANGE, BG_GREEN, BG_BLUE, BG_MAGENTA, BG_BLACK
+from random import choice, randint, random, seed
+from .colors import END, RED, GREEN, _theme
 from collections import deque
+import sys
+import termios
+import tty
 from time import sleep
 from os import system
-import sys, termios, tty
+from . import Parsing
+
 
 class Pixel:
     def __init__(self) -> None:
-        self.pixel: str = ''
+        self.px: str = ''
         self.bg: str = ''
-    
+
     def render_helper(self) -> str:
-        return self.bg + self.pixel 
+        return self.bg + self.px
+
 
 class Cell:
     def __init__(self) -> None:
@@ -26,11 +29,10 @@ class Cell:
         self.y: int = 0
 
     def get_binary(self) -> str:
-        binary: str = ''
-        value: list = [int(x) for x in self.walls.values()]
-        binary = ''.join([str(x) for x in value])
+        value: list[int] = [int(x) for x in self.walls.values()]
+        binary: str = ''.join([str(x) for x in value])
         return (binary)
-    
+
     def neighbors(self) -> dict[str, tuple[int, int]]:
         return {
             'NORTH': (self.x, self.y-1),
@@ -39,88 +41,45 @@ class Cell:
             'WEST': (self.x-1, self.y),
         }
 
+
 class MazeGenerator:
     def __init__(self, config: Parsing):
-        self.width = config._width
-        self.height = config._height
-        self.entry = config._entry
-        self.exit = config._exit
-        self.output_file = config._output_file
-        self.perfect = config._perfect
-        self.algorythm = config._algorythm
-        self.grid: list[list[Cell]] = [] 
+        self.width: int = config._width
+        self.height: int = config._height
+        self.entry: tuple[int, int] = config._entry
+        self.exit: tuple[int, int] = config._exit
+        self.output_file: str = config._output_file
+        self.perfect: bool = config._perfect
+        self.algorythm: str = config._algorythm
+        self.seed: int = config._seed
+        self.grid: list[list[Cell]] = []
         self._path: list[tuple[int, int]] = []
-        self._show = False
-        self._wall = '█'
+        self._show: bool = False
+        self._wall: str = '█'
         self._animation: bool = False
-        self._mode = 0
-        self._g_mode = 'easy'
-        self._themes: list[list[str]] = [
-                [WHITE, BG_BLUE, RED, GREEN],
-                [YELLOW, BG_GREEN, MAGENTA, CYAN],
-                [ORANGE, BG_BLACK, WHITE, WHITE],
-                [CYAN, BG_MAGENTA, YELLOW, YELLOW],
-                [GREEN, BG_BLUE, RED, RED]
-                ]
+        self._mode: int = 0
+        self._g_mode: str = 'easy'
         self._pattern42: list[tuple] = [
-            (0, 0), (0,1), (0,2), (1,2), (2,2),
-            (2,3), (2,4), #4
+            (0, 0), (0, 1), (0, 2), (1, 2), (2, 2),
+            (2, 3), (2, 4),  # 4
             (4, 0), (5, 0), (6, 0), (6, 1), (6, 2),
-            (5, 2), (4,2), (4,3), (4,4), (5,4), (6, 4) #2
+            (5, 2), (4, 2), (4, 3), (4, 4), (5, 4), (6, 4)  # 2
         ]
-    
 
     def lose_win(self, result: str) -> None:
-        space: str = ''
-        if result == 'win':
-            space = ''.join(' ' * (((self.width * 4) - 64) // 2)
-                            if ((self.width * 4) - 64) > 0 else '')
-        else:
-            space = ''.join(' ' * (((self.width * 4) - 74) // 2)
-                            if ((self.width * 4) - 74) > 0 else '')
-        w = self._wall
+        from .animation import w_l
         colors: list[str] = [
-            self._themes[self._mode][0],
-            self._themes[self._mode][3]
+            _theme[self._mode][0],
+            _theme[self._mode][3]
         ]
         self.render(1, True)
-        win = (
-                f'{space} {w * 2}╗   {w * 2}╗ {w * 6}╗ {w * 2}╗   {w * 2}╗     ' +
-                f'{w * 2}╗    {w * 2}╗{w * 2}╗{w * 3}╗   {w * 2}╗  {w * 2}╗\n' + 
-                f'{space} ╚{w * 2}╗ {w * 2}╔╝{w * 2}╔═══{w * 2}╗{w * 2}║   {w * 2}║   ' +
-                f'  {w * 2}║    {w * 2}║{w * 2}║{w * 4}╗  {w * 2}║  {w * 2}║\n' +
-                f'{space}  ╚{w * 4}╔╝ {w * 2}║   {w * 2}║{w * 2}║   {w * 2}║    ' +
-                f' {w * 2}║ {w}╗ {w * 2}║{w * 2}║{w * 2}╔{w * 2}╗ {w * 2}║  {w * 2}║\n' +
-                f'{space}   ╚{w * 2}╔╝  {w * 2}║   {w * 2}║{w * 2}║   {w * 2}║  ' +
-                f'   {w * 2}║{w * 3}╗{w * 2}║{w * 2}║{w * 2}║╚{w * 2}╗{w * 2}║  ╚═╝\n' +
-                f'{space}    {w * 2}║   ╚{w * 6}╔╝╚{w * 6}╔╝     ╚{w * 3}╔{w * 3}' +
-                f'╔╝{w * 2}║{w * 2}║ ╚{w * 4}║  {w * 2}╗\n' +
-                f'{space}    ╚═╝    ╚═════╝  ╚═════╝       ╚══╝╚══╝ ' +
-                '╚═╝╚═╝  ╚═══╝  ╚═╝\n' + END)
-        
-        lose = (
-                f'{space} {w*6}╗  {w*5}╗ {w*3}╗   {w*3}╗{w*7}╗     {w*6}╗ {w*2}╗   ' +
-                f'{w*2}╗{w*7}╗{w*6}╗ \n' +
-                f'{space}{w*2}╔════╝ {w*2}╔══{w*2}╗{w*4}╗ {w*4}║{w*2}╔════╝    {w*2}' +
-                f'╔═══{w*2}╗{w*2}║   {w*2}║{w*2}╔════╝{w*2}╔══{w*2}╗\n' +
-                f'{space}{w*2}║  {w*3}╗{w*7}║{w*2}╔{w*4}╔{w*2}║{w*5}╗      {w*2}║   ' +
-                f'{w*2}║{w*2}║   {w*2}║{w*5}╗  {w*6}╔╝\n' +
-                f'{space}{w*2}║   {w*2}║{w*2}╔══{w*2}║{w*2}║╚{w*2}╔╝{w*2}║{w*2}╔══╝   '
-                f'   {w*2}║   {w*2}║╚{w*2}╗ {w*2}╔╝{w*2}╔══╝  {w*2}╔══{w*2}╗\n' +
-                f'{space}╚{w*6}╔╝{w*2}║  {w*2}║{w*2}║ ╚═╝ {w*2}║{w*7}╗    ╚{w*6}╔╝ ' +
-                f'╚{w*4}╔╝ {w*7}╗{w*2}║  {w*2}║\n' +
-                f'{space} ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝   ╚═══╝  ' +
-                f'╚══════╝╚═╝  ╚═╝\n' + END)
-        
-        res: dict[str, str] = {
-            'win': f'{win}',
-            'lose': f'{lose}'}
-        
         for loops in range(8):
             for x in range(2):
                 print('\033[H', end='')
                 print(self._display().replace('\n', '\r\n'))
-                print((colors[x] + res[result]).replace('\n', '\r\n'), end='')
+                print(
+                    (colors[x] + w_l(self, result)).replace('\n', '\r\n'),
+                    end='')
                 if result == 'win':
                     sleep(0.1)
                 else:
@@ -128,40 +87,32 @@ class MazeGenerator:
                     if loops == 3:
                         return
 
+    def get_neighbors(self,
+                      x: int, y: int, status: str) -> list[tuple[int, int]]:
+        nb: list[tuple] = []
+        cell = self.grid
+        neighbors = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
+        for nx, ny in neighbors:
+            if ((nx >= 0 and nx < self.width) and
+                    (ny >= 0 and ny < self.height)):
+                if status == 'visited':
+                    if cell[ny][nx].visited and not cell[ny][nx].static:
+                        nb.append((nx, ny))
+                elif status == 'unvisited':
+                    if not cell[ny][nx].visited and not cell[ny][nx].static:
+                        nb.append((nx, ny))
+        return nb
 
-    def get_unvisited(self, x: int, y: int) -> list[tuple[int, int]]:
-        unvisited: list[tuple] = []
-        cell = self.grid
-        neighbors = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
-        for nx, ny in neighbors:
-            if (nx >= 0 and nx < self.width) and (ny >= 0 and ny < self.height):
-                if not cell[ny][nx].visited and not cell[ny][nx].static:
-                    unvisited.append((nx, ny))
-        return unvisited
-    
-    def get_visited(self, x: int, y: int) -> list[tuple[int, int]]:
-        visited: list[tuple] = []
-        cell = self.grid
-        neighbors = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
-        for nx, ny in neighbors:
-            if (nx >= 0 and nx < self.width) and (ny >= 0 and ny < self.height):
-                if cell[ny][nx].visited and not cell[ny][nx].static:
-                    visited.append((nx, ny))
-        return visited
-    
     def get_grid(self) -> None:
-        self.grid = [[Cell() for _ in range(self.width)] for _ in range(self.height)]
-        for pos_y, row in enumerate(self.grid) :
+        self.grid = [
+            [Cell() for _ in range(self.width)] for _ in range(self.height)]
+        for pos_y, row in enumerate(self.grid):
             for pos_x, cell in enumerate(row):
                 cell.x = pos_x
                 cell.y = pos_y
-        for row in self.grid :
-            for cell in row:
                 cell.matrix = [[Pixel() for _ in range(3)] for _ in range(3)]
 
-
-    def knock_wall(self, x: int, y: int, nx: int, ny: int) -> None:
-        opposite: dict = {'E':'W', 'W':'E', 'N':'S', 'S':'N'}
+    def get_dir(self, x: int, y: int, nx: int, ny: int) -> str:
         direction: str = ''
         if nx > x:
             direction = 'E'
@@ -171,162 +122,150 @@ class MazeGenerator:
             direction = 'S'
         elif ny < y:
             direction = 'N'
+        return direction
+
+    def knock_wall(self, x: int, y: int, nx: int, ny: int) -> None:
+        opposite: dict = {'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'}
+        direction: str = self.get_dir(x, y, nx, ny)
         self.grid[y][x].walls[direction] = False
         self.grid[ny][nx].walls[opposite[direction]] = False
-
 
     def _display(self) -> str:
         maze = ''
         for y, row in enumerate(self.grid):
-            for matrix_row in range(3):
-                if matrix_row == 2 and y < self.height - 1:
+            for m_row in range(3):
+                if m_row == 2 and y < self.height - 1:
                     continue
                 for x, cell in enumerate(row):
-                    for matrix_col in range(3):
-                        if matrix_col == 0 and x > 0:
+                    for m_col in range(3):
+                        if m_col == 0 and x > 0:
                             continue
-                        maze += cell.matrix[matrix_row][matrix_col].render_helper()
+                        maze += (cell.matrix[m_row][m_col].render_helper())
                 maze += '\n'
         return maze
 
-    def get_path(self, is_new: bool = False, ansi_mode: int = 1) -> None:
+    def get_path(self, update: bool = False, ansi_mode: int = 1) -> None:
         is_ansi: list[list[str]] = [
             [(''), (''), (''), ('')],
 
-            [(self._themes[self._mode][0]), (self._themes[self._mode][1]),
-            (self._themes[self._mode][2]), (self._themes[self._mode][3])]]
+            [(_theme[self._mode][0]), (_theme[self._mode][1]),
+             (_theme[self._mode][2]), (_theme[self._mode][3])]]
         is_color: list[str] = [
             (is_ansi[ansi_mode][0]), (is_ansi[ansi_mode][1]),
             (is_ansi[ansi_mode][2]), (is_ansi[ansi_mode][3])
         ]
-        
+
         _end: list[str] = [
             (''), (END)]
-        bullet = is_color[3] + '█'
+        bullet: str = is_color[3] + '█'
         for num, dot in enumerate(self._path):
             neighbors_in_path = [
                 self._path[num + 1] if num + 1 < len(self._path) else None,
                 self._path[num - 1] if num - 1 >= 0 else None,
             ]
             x, y = dot
-            if ansi_mode == 1 and is_new == False:
+            if ansi_mode and not update:
                 print('\033[H', end='')
-                # sleep(0.0009)
-            cell = self.grid[y][x]
+                sleep(0.0005)
+            cell: Cell = self.grid[y][x]
             if dot != self.entry and dot != self.exit:
-                cell.matrix[1][1].pixel = bullet * 2 + _end[ansi_mode]
+                cell.matrix[1][1].px = bullet * 2 + _end[ansi_mode]
             if cell.neighbors()['EAST'] in neighbors_in_path:
-                cell.matrix[1][2].pixel =  bullet * 2 + _end[ansi_mode]
+                cell.matrix[1][2].px = bullet * 2 + _end[ansi_mode]
             if cell.neighbors()['WEST'] in neighbors_in_path:
-                cell.matrix[1][0].pixel =  bullet * 2 + _end[ansi_mode]
+                cell.matrix[1][0].px = bullet * 2 + _end[ansi_mode]
             if cell.neighbors()['NORTH'] in neighbors_in_path:
-                cell.matrix[0][1].pixel = bullet * 2 + _end[ansi_mode]
+                cell.matrix[0][1].px = bullet * 2 + _end[ansi_mode]
             if cell.neighbors()['SOUTH'] in neighbors_in_path:
-                cell.matrix[2][1].pixel = bullet * 2 + _end[ansi_mode]
-            
-            if is_new == False:
+                cell.matrix[2][1].px = bullet * 2 + _end[ansi_mode]
+            if not update:
                 print(self._display())
-    
+
     def path_direction(self) -> str:
-        path_dir: list = []
-        direction = ''
+        path_dir: list[tuple[int, int]] = []
+        direction: str = ''
         path_dir.append(self.entry)
         for n, step in enumerate(self._path):
             if n == 0:
                 continue
-            nx, ny  = step
+            nx, ny = step
             x, y = path_dir[-1]
-            if nx > x:
-                direction += 'E'
-            elif nx < x:
-                direction += 'W'
-            elif ny > y:
-                direction += 'S'
-            elif ny < y:
-                direction += 'N'
+            direction += self.get_dir(x, y, nx, ny)
             path_dir.append(step)
         return direction
 
-
-    def render(self, ansi: int = 1, update: bool = False, play: bool = False) -> None:
+    def render(self,
+               ansi: int = 1, update: bool = False,
+               play: bool = False) -> None:
         is_ansi: list[list[str]] = [
             [(''), (''), (''), ('')],
 
-            [(self._themes[self._mode][0]), (self._themes[self._mode][1]),
-            (self._themes[self._mode][2]), (self._themes[self._mode][3])]]
+            [(_theme[self._mode][0]), (_theme[self._mode][1]),
+             (_theme[self._mode][2]), (_theme[self._mode][3])]]
         is_color: list[str] = [
             (is_ansi[ansi][0]), (is_ansi[ansi][1]),
             (is_ansi[ansi][2]), (is_ansi[ansi][3])
         ]
         background: str = is_color[1]
-        
         _end: list[str] = [
             (''), (END)]
-
         en_ex: list[str] = [
-            is_color[2] +'█',
-            is_color[3] +'█',
+            is_color[2] + '█',
+            is_color[3] + '█',
             ' '
         ]
         for y in range(len(self.grid)):
             row = self.grid[y]
             wall = f'{is_color[0]}{self._wall}'
-
             for x in range(len(row)):
-                cell_floor = background + ' '
-                cell: Cell = row[x]
-                decimal: int = int(cell.get_binary(), 2)
-
-                for matrix_col in range(3):
+                cell_floor: str = background + ' '
+                c: Cell = row[x]
+                decimal: int = int(c.get_binary(), 2)
+                for m_col in range(3):
                     if decimal & 1:
-                        if matrix_col == 1:
-                            cell.matrix[0][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
+                        if m_col == 1:
+                            c.matrix[0][m_col].px = f'{wall * 2}{_end[ansi]}'
                         else:
-                            cell.matrix[0][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
+                            c.matrix[0][m_col].px = f'{wall * 2}{_end[ansi]}'
                     else:
-                        if matrix_col == 1:
-                            cell.matrix[0][matrix_col].pixel = cell_floor * 2
+                        if m_col == 1:
+                            c.matrix[0][m_col].px = cell_floor * 2
                         else:
-                            cell.matrix[0][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
+                            c.matrix[0][m_col].px = f'{wall * 2}{_end[ansi]}'
                     if decimal & 2:
-                        cell.matrix[1][2].pixel = f'{wall  * 2}{_end[ansi]}'
+                        c.matrix[1][2].px = f'{wall * 2}{_end[ansi]}'
                     else:
-                        cell.matrix[1][2].pixel = f'{cell_floor * 2}'
+                        c.matrix[1][2].px = f'{cell_floor * 2}'
 
                     if decimal & 8:
-                        cell.matrix[1][0].pixel = f'{wall * 2}{_end[ansi]}'
+                        c.matrix[1][0].px = f'{wall * 2}{_end[ansi]}'
                     else:
-                        cell.matrix[1][0].pixel = f'{cell_floor * 2}'
+                        c.matrix[1][0].px = f'{cell_floor * 2}'
 
                     if decimal & 4:
-                        if matrix_col == 1:
-                            cell.matrix[2][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
+                        if m_col == 1:
+                            c.matrix[2][m_col].px = f'{wall * 2}{_end[ansi]}'
                         else:
-                            cell.matrix[2][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
+                            c.matrix[2][m_col].px = f'{wall * 2}{_end[ansi]}'
 
                     if decimal == 15:
-                        cell.matrix[1][matrix_col].pixel = f'{wall * 2}{_end[ansi]}'
+                        c.matrix[1][m_col].px = f'{wall * 2}{_end[ansi]}'
                     else:
-                        cell.matrix[1][1].pixel = cell_floor * 2
-                    cell.matrix[0][matrix_col].bg = background
-                    cell.matrix[1][2].bg = background
-                    cell.matrix[1][0].bg = background
-                    cell.matrix[2][matrix_col].bg = background
-                    cell.matrix[1][matrix_col].bg = background
+                        c.matrix[1][1].px = cell_floor * 2
+                    c.matrix[0][m_col].bg = background
+                    c.matrix[1][2].bg = background
+                    c.matrix[1][0].bg = background
+                    c.matrix[2][m_col].bg = background
+                    c.matrix[1][m_col].bg = background
+                if (x, y) == self.entry:
+                    c.matrix[1][1].px = en_ex[0] * 2 + _end[ansi]
+                if (x, y) == self.exit:
+                    c.matrix[1][1].px = en_ex[1] * 2 + _end[ansi]
 
-                if (x,y) == self.entry:
-                    cell.matrix[1][1].pixel = en_ex[0] * 2 + _end[ansi]
-
-                if (x,y) == self.exit:
-                    cell.matrix[1][1].pixel = en_ex[1] * 2 + _end[ansi]
-
-        if self._show == True or play == True:
-            self.get_path(ansi_mode=ansi, is_new=update)
+        if self._show or play:
+            self.get_path(ansi_mode=ansi, update=update)
             system('clear')
-            # if update == False:
-            #     self.display_win()
         termios.tcflush(sys.stdin, termios.TCIFLUSH)
-
 
     def saved(self) -> None:
         _save = GREEN + f'    file saved : {self.output_file}' + END
@@ -343,16 +282,15 @@ class MazeGenerator:
                 sleep(0.6)
             system('clear')
 
-
     def save(self) -> None:
         self.render(ansi=0, update=True)
-        with open (self.output_file, 'w') as file:
+        with open(self.output_file, 'w') as file:
             file.write(self._display())
         self.saved()
-    
+
     def save_hex(self) -> None:
-        hex_content = ''
-        row = self.grid
+        hex_content: str = ''
+        row: list[list[Cell]] = self.grid
         for collumn in row:
             for cell in collumn:
                 hex_content += format(int(cell.get_binary(), 2), 'X')
@@ -365,60 +303,81 @@ class MazeGenerator:
             file.write(hex_content)
         self.saved()
 
-    
     def generate(self) -> None:
+        if self.seed:
+            seed(self.seed)
         if self.algorythm == 'dfs':
             self._dfs()
         else:
             self.prim()
+        if not self.perfect:
+            self.make_imperfect()
         self._path = []
         self._bfs(self.entry, self.exit)
         self.render()
 
-    def lock_42(self) -> None:
+    def init_static(self) -> None:
         cell = self.grid
         offset_x = (self.width - 7) // 2
         offset_y = (self.height - 5) // 2
         for rel_x, rel_y in self._pattern42:
             tx: int = offset_x + rel_x
             ty: int = offset_y + rel_y
-            if tx == self.entry[0] and ty == self.entry[1] or tx == self.exit[0] and ty == self.exit[1]:
-                raise Exception(f'{RED}Entry & Exit must not be in 42 position{END}')
+            if (tx == self.entry[0] and ty == self.entry[1] or
+                    tx == self.exit[0] and ty == self.exit[1]):
+                raise Exception(
+                    f'{RED}Entry & Exit must not be in 42 position{END}')
             cell[ty][tx].static = True
             cell[ty][tx].visited = True
-    
+
+    def _animate(self) -> None:
+        print('\033[H', end='')
+        self.render()
+        print(self._display())
+        sleep(0.001)
+
+    def make_imperfect(self) -> None:
+        s_e: dict[str, str] = {'E': 'EAST', 'S': 'SOUTH'}
+        row = self.grid
+        for collumn in row:
+            for cell in collumn:
+                x, y = cell.x, cell.y
+                for wall, neighbour in s_e.items():
+                    if cell.walls[wall] and not cell.static:
+                        nx, ny = cell.neighbors()[neighbour]
+                        if (nx >= 0 and nx < self.width and
+                            ny >= 0 and ny < self.height and
+                                not row[ny][nx].static):
+                            if random() < 0.15:
+                                self.knock_wall(x, y, nx, ny)
+
     def _dfs(self) -> None:
-        '''Depth-first search (DFS) is an algorithm used to traverse 
+        '''Depth-first search (DFS) is an algorithm used to traverse
         or search through a data structure, such as a graph or tree.'''
         self.get_grid()
-        self.lock_42()
+        self.init_static()
         stack: list[tuple] = []
         stack.append(self.entry)
         cell = self.grid
         cell[self.entry[1]][self.entry[0]].visited = True
         while stack:
             x, y = stack[-1]
-            neighbors = self.get_unvisited(x, y)
+            neighbors = self.get_neighbors(x, y, 'unvisited')
             if neighbors:
                 n = choice(neighbors)
-                # if not cell[n[1]][n[0]].static:
                 self.knock_wall(x, y, n[0], n[1])
                 cell[n[1]][n[0]].visited = True
                 stack.append(n)
 
             else:
                 stack.pop()
-            if self._animation == True:
-                print('\033[H', end='')
-                self.render()
-                print(self._display())
-                sleep(0.001)
+            if self._animation:
+                self._animate()
         system('clear')
-
 
     def prim(self) -> None:
         self.get_grid()
-        self.lock_42()
+        self.init_static()
         frontiers: list[tuple[int, int]] = []
         cell = self.grid
         while True:
@@ -428,25 +387,22 @@ class MazeGenerator:
                 continue
             break
         cell[y][x].visited = True
-        frontiers.extend(self.get_unvisited(x, y))
+        frontiers.extend(self.get_neighbors(x, y, 'unvisited'))
         while frontiers:
             n = choice(frontiers)
             frontiers.remove(n)
-            v= choice(self.get_visited(n[0], n[1]))
+            v = choice(self.get_neighbors(n[0], n[1], 'visited'))
             self.knock_wall(n[0], n[1], v[0], v[1])
             cell[n[1]][n[0]].visited = True
-            frontiers.extend([c for c in self.get_unvisited(n[0], n[1]) if
-                              c not in frontiers])
-            if self._animation == True:
-                print('\033[H', end='')
-                self.render()
-                print(self._display())
-                sleep(0.001)
+            frontiers.extend(
+                [c for c in self.get_neighbors(n[0], n[1], 'unvisited') if
+                 c not in frontiers])
+            if self._animation:
+                self._animate()
         system('clear')
 
-
     def _bfs(self, entry: tuple[int, int], exit: tuple[int, int]) -> None:
-        opposite: dict = {'E':'W', 'W':'E', 'N':'S', 'S':'N'}
+        opposite: dict[str, str] = {'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'}
         cell = self.grid
         x: int = 0
         y: int = 0
@@ -463,102 +419,82 @@ class MazeGenerator:
             neighbours = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
             for nx, ny in neighbours:
                 if (nx >= 0 and nx < self.width and
-                    ny >= 0 and ny < self.height):
+                        ny >= 0 and ny < self.height):
                     if (nx, ny) not in visited:
-                        direction: str = ''
-                        if nx > x:
-                            direction = 'E'
-                        elif nx < x:
-                            direction = 'W'
-                        elif ny > y:
-                            direction = 'S'
-                        elif ny < y:
-                            direction = 'N'
-                        if (cell[y][x].walls[direction] == False and
-                            cell[ny][nx].walls[opposite[direction]] == False):
+                        direction: str = self.get_dir(x, y, nx, ny)
+                        if not (cell[y][x].walls[direction]
+                                and cell[ny][nx].walls[opposite[direction]]):
                             queue.append((nx, ny))
                             came_from[(nx, ny)] = (x, y)
                             visited.add((nx, ny))
         current = (exit)
-        p: list = []
+        p: list[tuple[int, int]] = []
         p.append(current)
         while current != entry:
             current = came_from[current]
             p.append(current)
         self._path = list(reversed(p))
 
-
     def play(self) -> None:
         system('clear')
-        fd= sys.stdin.fileno()
+        fd: int = sys.stdin.fileno()
         old_setting = termios.tcgetattr(fd)
 
         tty.setraw(sys.stdin)
 
         x, y = self.entry
         self._path = []
-        direction_map = {'N': 'NORTH', 'S': 'SOUTH', 'E': 'EAST', 'W': 'WEST'}
+        direction_map: dict[str, str] = {
+            'N': 'NORTH', 'S': 'SOUTH', 'E': 'EAST', 'W': 'WEST'}
         self.render(update=True)
         print(self._display().replace('\n', '\r\n'), end='')
         self._path.append(self.entry)
-        k = ''
-        j = str(sys.stdin.read(1))
+        k: str = ''
+        moves = {
+            '[A': ('N', 0, -1),
+            '[B': ('S', 0, +1),
+            '[D': ('W', -1, 0),
+            '[C': ('E', +1, 0)}
+        j: str = str(sys.stdin.read(1))
         if j == '\x1b':
-                k = str(sys.stdin.read(2))
+            k = str(sys.stdin.read(2))
         system('clear')
         try:
             while j != 'q':
                 if j == '\x1b':
-                    if k == '[A':
-                        if self.grid[y][x].walls['N'] == False:
-                            if (x,y-1) in self._path and self._g_mode == 'hard':
-                                ...
-                            else:
-                                y -= 1
-                    elif k == '[B':
-                        if self.grid[y][x].walls['S'] == False:
-                            if (x,y+1) in self._path and self._g_mode == 'hard':
-                                ...
-                            else:
-                                y += 1
-                    elif k == '[D':
-                        if self.grid[y][x].walls['W'] == False:
-                            if (x-1,y) in self._path and self._g_mode == 'hard':
-                                ...
-                            else:
-                                x -= 1
-                    elif k == '[C':
-                        if self.grid[y][x].walls['E'] == False:
-                            if (x+1,y) in self._path and self._g_mode == 'hard':
-                                ...
-                            else:
-                                x += 1
-                            
+                    if k in moves:
+                        w, dx, dy = moves[k]
+                        nx, ny = x + dx, y + dy
+                        if not self.grid[y][x].walls[w]:
+                            if not (
+                                (nx, ny) in self._path and
+                                    self._g_mode == 'hard'):
+                                x, y = nx, ny
+
                 print('\033[H', end='')
-                if len(self._path) >= 2 and (x,y) == self._path[-2]:
+                if len(self._path) >= 2 and (x, y) == self._path[-2]:
                     if self._g_mode == 'easy':
                         self._path.pop()
-                    self.render(update=True, play=False)
-                    self.get_path(is_new=True)
+                    self.render(update=True, play=True)
 
-                if (x,y) not in self._path:
+                if (x, y) not in self._path:
                     self._path.append((x, y))
-                    self.render(update=True, play=False)
-                    self.get_path(is_new=True)
-                
-                game_over = True
+                    self.render(update=True, play=True)
+
+                game_over: bool = True
                 for direction, wall in self.grid[y][x].walls.items():
-                    pos = self.grid[y][x].neighbors()[direction_map[direction]]
+                    pos: tuple[int, int] = (
+                        self.grid[y][x].neighbors()[direction_map[direction]])
                     if not wall and pos not in self._path:
                         game_over = False
                         break
-                
-                if (x,y) == self.exit:
+
+                if (x, y) == self.exit:
                     self.lose_win(result='win')
                     break
 
                 if self._g_mode == 'hard':
-                    if game_over == True and (x, y) != self.exit:
+                    if game_over and (x, y) != self.exit:
                         self.lose_win(result='lose')
                         break
                 print(self._display().replace('\n', '\r\n'), end='')

@@ -1,7 +1,8 @@
 from .parsing import Parsing
 from . import colors
+from typing import Any
 
-all = [
-    'Parsing',
-    'colors'
+__all__: list[Any] = [
+    Parsing,
+    colors
 ]

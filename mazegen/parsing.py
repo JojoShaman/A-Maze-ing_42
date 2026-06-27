@@ -1,5 +1,6 @@
 from .colors import RED, END
 
+
 class Parsing():
     def __init__(self) -> None:
         self._width: int = 0
@@ -9,21 +10,23 @@ class Parsing():
         self._output_file: str = ""
         self._perfect: bool = False
         self._algorythm: str = ""
+        self._seed: int = 0
 
     def parse(self, file: str) -> None:
         errors: list = []
         with open(file, 'r') as f:
             content = f.read()
-        lines: list = [l for l in content.splitlines() if
-                 l.strip() and not l.startswith('#')]
-        p: dict = {key : value for key, value in
+        lines: list = [line for line in content.splitlines() if
+                       line.strip() and not line.startswith('#')]
+        p: dict = {key: value for key, value in
                    (line.split('=')for line in lines)}
         try:
             self._width = int(p['WIDTH'])
             if self._width < 0:
                 errors.append(ValueError('width should not be negative'))
             if self._width < 7:
-                raise Exception(f"{RED}Error: Maze size too small for '42' pattern.{END}")
+                raise Exception(
+                    f"{RED}Error: Maze size too small for '42' pattern.{END}")
         except ValueError as e:
             errors.append(e)
         try:
@@ -31,7 +34,8 @@ class Parsing():
             if self._height < 0:
                 errors.append(ValueError('height should not be negative'))
             if self._height < 5:
-                raise Exception(f"{RED}Error: Maze size too small for '42' pattern.{END}")
+                raise Exception(
+                    f"{RED}Error: Maze size too small for '42' pattern.{END}")
         except ValueError as e:
             errors.append(e)
         try:
@@ -39,27 +43,36 @@ class Parsing():
             if (x >= 0 and x < self._width) and (y >= 0 and y < self._height):
                 self._entry = (x, y)
             else:
-                errors.append(ValueError('entry coordinates are out of bounds'))
+                errors.append(
+                    ValueError('entry coordinates are out of bounds'))
         except ValueError as e:
             errors.append(e)
         try:
             x, y = (int(pos) for pos in p['EXIT'].split(','))
-            if (x >= 0 and x < self._width) and (y >= 0 and y < self._height):
+            if ((x >= 0 and x < self._width) and
+                    (y >= 0 and y < self._height)):
                 self._exit = (x, y)
             else:
-                errors.append(ValueError('exit coordinates are out of bounds'))
+                errors.append(
+                    ValueError('exit coordinates are out of bounds'))
         except ValueError as e:
             errors.append(e)
         self._output_file = p['OUTPUT_FILE']
         if p['PERFECT'] == 'True' or p['PERFECT'] == 'False':
-            self._perfect = bool(p['PERFECT'] == True)
+            self._perfect = p['PERFECT'] == 'True'
         else:
             errors.append(ValueError(f"Incorrect value '{p['PERFECT']}'"
-                        + " for variable 'PERFECT'"))
-        if p['ALGORYTHM'] == 'dfs' or p['ALGORYTHM'] == 'prims':
+                                     + " for variable 'PERFECT'"))
+        if p['ALGORYTHM'] == 'dfs' or p['ALGORYTHM'] == 'prim':
             self._algorythm = p['ALGORYTHM']
         else:
             errors.append(f"Error: {p['ALGORYTHM']} algorythm not found")
+        if p.get('SEED'):
+            try:
+                self._seed = int(p['SEED'])
+            except ValueError:
+                errors.append(ValueError(f"Incorrect value '{p['SEED']}'"
+                                         + " for variable 'SEED'"))
         if errors:
             error: str = ''
             for err in errors:

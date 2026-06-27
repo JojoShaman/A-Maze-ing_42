@@ -1,5 +1,6 @@
 from .generator import MazeGenerator
-from .colors import END
+from .colors import END, _theme
+
 
 def theme() -> None:
     print((' ' * 20) + '┏' + ('━' * 12) + '┓')
@@ -12,6 +13,7 @@ def theme() -> None:
     print((' ' * 18) + '4    Snake\n')
     print((' ' * 18) + 'b    go back', END)
 
+
 def algo(algorythm: str, theme: str) -> None:
     dfs = 'x' if algorythm == 'dfs' else ' '
     prim = 'x' if algorythm == 'prim' else ' '
@@ -23,10 +25,11 @@ def algo(algorythm: str, theme: str) -> None:
     print((' ' * 20) + f'1     prim    [{prim}]\n')
     print((' ' * 20) + 'b    go back', END)
 
-def game_mode(theme: list[list[str]], color_mode: int, game: str) -> None:
+
+def game_mode(color_mode: int, game: str) -> None:
     easy = 'x' if game == 'easy' else ' '
     hard = 'x' if game == 'hard' else ' '
-    print(theme[color_mode][2])
+    print(_theme[color_mode][2])
     print((' ' * 20) + '┏' + ('━' * 15) + '┓')
     print((' ' * 20) + '┃ ' + '* PLAY MODE * ┃')
     print((' ' * 20) + '┗' + ('━' * 15) + '┛' + '\n')
@@ -34,12 +37,13 @@ def game_mode(theme: list[list[str]], color_mode: int, game: str) -> None:
     print((' ' * 20) + f'1     hard    [{hard}]\n')
     print((' ' * 20) + 'b    go back\n', END)
 
+
 def user(maze: MazeGenerator, show: str, animation: str) -> None:
     s = ' ' * 4
     space = ' '
-    nb = maze._themes[maze._mode][2]
-    colo = maze._themes[maze._mode][0]
-    print(f'\n{maze._themes[maze._mode][0]}', end='')
+    nb = _theme[maze._mode][2]
+    colo = _theme[maze._mode][0]
+    print(f'\n{_theme[maze._mode][0]}', end='')
     print(f'{s}┏{"━" * 9}  A-Maze-ing  {"━" * 9}┓')
     print(f'{s}┃{space * 32}┃')
     print(f'{s}┃{s}{nb}↵{s}{colo}Generate maze{space * 10}┃')
@@ -51,7 +55,7 @@ def user(maze: MazeGenerator, show: str, animation: str) -> None:
     print(f'{s}┃{s}{nb}5{s}{colo}Save hex{space * 15}┃')
     print(f'{s}┃{s}{nb}6{s}{colo}Game{space * 19}┃')
     print(f'{s}┃{s}{nb}7{s}{colo}{animation} ' +
-            f'animation{space * 5 if maze._animation else space * 6}┃')
+          f'animation{space * 5 if maze._animation else space * 6}┃')
     print(f'{s}┃{space * 32}┃')
     print(f'{s}┃{s}{nb}q{s}{colo}quit{space * 19}┃')
     print(f'{s}┃{space * 32}┃')

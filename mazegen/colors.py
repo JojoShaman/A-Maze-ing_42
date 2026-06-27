@@ -13,3 +13,10 @@ BG_GREEN: str = "\033[42m"
 BG_BLUE: str = "\033[48;5;21m"
 BG_MAGENTA: str = "\033[48;5;163m"
 BG_BLACK: str = "\033[40m"
+_theme: list[list[str]] = [
+                [WHITE, BG_BLUE, RED, GREEN],
+                [YELLOW, BG_GREEN, MAGENTA, CYAN],
+                [ORANGE, BG_BLACK, WHITE, WHITE],
+                [CYAN, BG_MAGENTA, YELLOW, YELLOW],
+                [GREEN, BG_BLUE, RED, RED]
+                ]
