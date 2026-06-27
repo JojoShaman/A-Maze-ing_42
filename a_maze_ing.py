@@ -5,28 +5,24 @@ import sys
 from os import system
 from time import sleep
 from mazegen import menu
+from random import choice, randint
+
 
 def run() -> None:
     maze = MazeGenerator(parsed)
     try:
-        error = False
         try:
             maze.generate()
             print(maze._display())
         except Exception as e:
             raise (e)
         while True:
-            while True:
-                show_hide = 'hide path' if maze._show else 'show path'
-                animation = 'Turn off' if maze._animation else 'Turn on'
-                try:
-                    menu.user(maze, show_hide, animation)
-                    command = input(f'\n{' ' * 5}Enter command: ')
-                    break
-                except KeyboardInterrupt:
-                    error = True
-                    break
-            if error == True:
+            show_hide = 'Hide path' if maze._show else 'Show path'
+            animation = 'Turn off' if maze._animation else 'Turn on'
+            try:
+                menu.user(maze, show_hide, animation)
+                command = input(f'\n{' ' * 5}Enter command: ')
+            except KeyboardInterrupt:
                 raise KeyboardInterrupt
             if not command:
                 system('clear')
@@ -52,6 +48,7 @@ def run() -> None:
                         'prim' if maze.algorythm == 'dfs' else 'prim')
                 elif algo_input == 'b':
                     ...
+
                 system('clear')
                 print(maze._display())
 
@@ -111,41 +108,12 @@ def run() -> None:
                 maze.render(update=True) 
                 print(maze._display())
             elif command == '4':
-                while True:
-                    while True:
-                        print('          ', end='')
-                        width_input = input(
-                            'insert width: ')
-                        if width_input == '':
-                            break
-                        try:
-                            maze.width = int(width_input)
-                            break
-                        except ValueError as e:
-                            print(e)
-                            continue
-                    while True:
-                        print('          ', end='')
-                        height_input = input(
-                            'insert height: ')
-                        if height_input == '':
-                            break
-                        try:
-                            maze.height = int(height_input)
-                            break
-                        except ValueError as e:
-                            print(e)
-                            continue
-                    if maze.width < 7 or maze.height < 5:
-                        print(f"{RED}Error: Maze size too small for '42' pattern.{END}")
-                        continue
-                    maze.exit = (maze.width - 1, maze.height - 1)
-                    maze._show = False
-                    maze.generate()
-                    print(maze._display())
-                    break
-            elif command == '5':
                 maze.save()
+                system('clear')
+                maze.render(update=True)
+                print(maze._display())
+            elif command == '5':
+                maze.save_hex()
                 system('clear')
                 maze.render(update=True)
                 print(maze._display())
@@ -154,24 +122,29 @@ def run() -> None:
                     '0': 'easy',
                     '1': 'hard'
                 }
-                menu.game_mode(maze._themes, maze._mode)
+                menu.game_mode(maze._themes, maze._mode, maze._g_mode)
                 while True:
                     try:
-                        game_mode_input = input(
-                                    (' ' * 18) + 'Chose your gaming mode: ')
-                        if (game_mode_input == '0' or
-                            game_mode_input == '1' or
-                            game_mode_input == 'b'):
+                        gm_input = input(
+                                    (' ' * 5) +
+                                    'Choose your gaming mode '
+                                    'or press ENTER to start: ')
+                        if (gm_input == '0' or
+                            gm_input == '1' or
+                            gm_input == 'b' or
+                            not gm_input):
                             break
                         else:
                             print('please enter valid input')
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
-                if game_mode_input == 'b':
+                if gm_input == 'b':
                     system('clear')
                     print(maze._display())
                     continue
-                maze.play(mode=gm[game_mode_input])
+                if gm_input:
+                    maze._g_mode = gm[gm_input]
+                maze.play()
                 system('clear')
                 print(maze._display())
                 maze._bfs(maze.entry, maze.exit)

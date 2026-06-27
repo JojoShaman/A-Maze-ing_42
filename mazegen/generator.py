@@ -28,7 +28,7 @@ class Cell:
     def get_binary(self) -> str:
         binary: str = ''
         value: list = [int(x) for x in self.walls.values()]
-        binary += str(reduce(lambda a, b: (a * 10) + b, value))
+        binary = ''.join([str(x) for x in value])
         return (binary)
     
     def neighbors(self) -> dict[str, tuple[int, int]]:
@@ -40,7 +40,6 @@ class Cell:
         }
 
 class MazeGenerator:
-    # maze = ''
     def __init__(self, config: Parsing):
         self.width = config._width
         self.height = config._height
@@ -55,6 +54,7 @@ class MazeGenerator:
         self._wall = '█'
         self._animation: bool = False
         self._mode = 0
+        self._g_mode = 'easy'
         self._themes: list[list[str]] = [
                 [WHITE, BG_BLUE, RED, GREEN],
                 [YELLOW, BG_GREEN, MAGENTA, CYAN],
@@ -226,6 +226,27 @@ class MazeGenerator:
             
             if is_new == False:
                 print(self._display())
+    
+    def path_direction(self) -> str:
+        path_dir: list = []
+        direction = ''
+        path_dir.append(self.entry)
+        for n, step in enumerate(self._path):
+            if n == 0:
+                continue
+            nx, ny  = step
+            x, y = path_dir[-1]
+            if nx > x:
+                direction += 'E'
+            elif nx < x:
+                direction += 'W'
+            elif ny > y:
+                direction += 'S'
+            elif ny < y:
+                direction += 'N'
+            path_dir.append(step)
+        return direction
+
 
     def render(self, ansi: int = 1, update: bool = False, play: bool = False) -> None:
         is_ansi: list[list[str]] = [
@@ -327,6 +348,21 @@ class MazeGenerator:
         self.render(ansi=0, update=True)
         with open (self.output_file, 'w') as file:
             file.write(self._display())
+        self.saved()
+    
+    def save_hex(self) -> None:
+        hex_content = ''
+        row = self.grid
+        for collumn in row:
+            for cell in collumn:
+                hex_content += format(int(cell.get_binary(), 2), 'X')
+            hex_content += '\n'
+        hex_content += '\n'
+        hex_content += (f'{str(self.entry[0])},{str(self.entry[1])}\n'
+                        f'{str(self.exit[0])},{str(self.exit[1])}\n')
+        hex_content += self.path_direction()
+        with open(self.output_file, 'w') as file:
+            file.write(hex_content)
         self.saved()
 
     
@@ -452,7 +488,7 @@ class MazeGenerator:
         self._path = list(reversed(p))
 
 
-    def play(self, mode: str = 'easy') -> None:
+    def play(self) -> None:
         system('clear')
         fd= sys.stdin.fileno()
         old_setting = termios.tcgetattr(fd)
@@ -475,32 +511,32 @@ class MazeGenerator:
                 if j == '\x1b':
                     if k == '[A':
                         if self.grid[y][x].walls['N'] == False:
-                            if (x,y-1) in self._path and mode == 'hard':
+                            if (x,y-1) in self._path and self._g_mode == 'hard':
                                 ...
                             else:
                                 y -= 1
                     elif k == '[B':
                         if self.grid[y][x].walls['S'] == False:
-                            if (x,y+1) in self._path and mode == 'hard':
+                            if (x,y+1) in self._path and self._g_mode == 'hard':
                                 ...
                             else:
                                 y += 1
                     elif k == '[D':
                         if self.grid[y][x].walls['W'] == False:
-                            if (x-1,y) in self._path and mode == 'hard':
+                            if (x-1,y) in self._path and self._g_mode == 'hard':
                                 ...
                             else:
                                 x -= 1
                     elif k == '[C':
                         if self.grid[y][x].walls['E'] == False:
-                            if (x+1,y) in self._path and mode == 'hard':
+                            if (x+1,y) in self._path and self._g_mode == 'hard':
                                 ...
                             else:
                                 x += 1
                             
                 print('\033[H', end='')
                 if len(self._path) >= 2 and (x,y) == self._path[-2]:
-                    if mode == 'easy':
+                    if self._g_mode == 'easy':
                         self._path.pop()
                     self.render(update=True, play=False)
                     self.get_path(is_new=True)
@@ -521,9 +557,10 @@ class MazeGenerator:
                     self.lose_win(result='win')
                     break
 
-                if game_over == True and (x, y) != self.exit:
-                    self.lose_win(result='lose')
-                    break
+                if self._g_mode == 'hard':
+                    if game_over == True and (x, y) != self.exit:
+                        self.lose_win(result='lose')
+                        break
                 print(self._display().replace('\n', '\r\n'), end='')
 
                 j = str(sys.stdin.read(1))
