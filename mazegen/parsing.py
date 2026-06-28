@@ -9,7 +9,7 @@ class Parsing():
         self._exit: tuple[int, int] = (0, 0)
         self._output_file: str = ""
         self._perfect: bool = False
-        self._algorythm: str = ""
+        self._algorithm: str = ""
         self._seed: int = 0
 
     def parse(self, file: str) -> None:
@@ -63,10 +63,10 @@ class Parsing():
         else:
             errors.append(ValueError(f"Incorrect value '{p['PERFECT']}'"
                                      + " for variable 'PERFECT'"))
-        if p['ALGORYTHM'] == 'dfs' or p['ALGORYTHM'] == 'prim':
-            self._algorythm = p['ALGORYTHM']
+        if p['ALGORITHM'] == 'dfs' or p['ALGORITHM'] == 'prim':
+            self._algorithm = p['ALGORITHM']
         else:
-            errors.append(f"Error: {p['ALGORYTHM']} algorythm not found")
+            errors.append(f"Error: {p['ALGORITHM']} algorithm not found")
         if p.get('SEED'):
             try:
                 self._seed = int(p['SEED'])
