@@ -6,6 +6,7 @@ from mazegen import menu, render, save, hex, display
 
 
 def run() -> None:
+    "Run the maze generator program."
     maze = MazeGenerator(parsed)
     try:
         try:
