@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mazegen"
+version = "1.0.0"
+description = "A maze generator with DFS and Prim's algorithms."
+authors = [
+    {name = "Sorin Rosu", email = "srosu@student.42belgium.be"}
+]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["flake8", "mypy", "build"]
+
+[tool.setuptools.packages.find]
+include = ["mazegen*"]
