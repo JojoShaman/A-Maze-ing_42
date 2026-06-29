@@ -4,7 +4,7 @@ CONFIG = config.txt
 REQUIREMENTS = requirements.txt
 
 venv:
-	${PYTHON} -m venv .venv +
+	${PYTHON} -m venv .venv
 
 install:
 	pip install -r ${REQUIREMENTS}
