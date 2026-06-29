@@ -2,6 +2,18 @@ from .colors import RED, END
 
 
 class Parsing():
+    """Store parsed data from configuration file.
+    
+    Attributes:
+        _width: number of columns in the maze.
+        _height: number of rows in the maze.
+        _entry: coordinates of the maze entry point.
+        _exit: coordinates of the maze exit point.
+        _output_file: path to the output file.
+        _perfect: whether the has a unique path between entry and exit.
+        _algorithm: generation algorithm ('dfs' or 'prim').
+        _seed: optional seed for reproducible generation.
+    """
     def __init__(self) -> None:
         self._width: int = 0
         self._height: int = 0
@@ -13,6 +25,10 @@ class Parsing():
         self._seed: int = 0
 
     def parse(self, file: str) -> None:
+        """Parse the configuration file parameters with error management.
+        
+        Args:
+            file: path to configuration file."""
         errors: list = []
         with open(file, 'r') as f:
             content = f.read()

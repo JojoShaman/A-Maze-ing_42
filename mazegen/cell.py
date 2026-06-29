@@ -1,5 +1,5 @@
 class Pixel:
-    """Stores a character and it's background.
+    """Store a character and it's background.
     
     Attributes:
         px: visual represention of the pixel.

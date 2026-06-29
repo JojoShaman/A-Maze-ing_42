@@ -7,6 +7,11 @@ from .cell import Cell
 
 
 def save_confirmation(maze: MazeGenerator) -> None:
+    """Print save confirmation with blinking animation.
+    
+    Args:
+        maze: MazeGenerator instance to render, display and access output file.
+    """
     _save = GREEN + f'    file saved: {maze.output_file}' + END
     render(maze, update=True)
     system('clear')
@@ -22,12 +27,25 @@ def save_confirmation(maze: MazeGenerator) -> None:
         system('clear')
 
 def save(maze: MazeGenerator) -> None:
+    """Open the output file and writes the maze rendered.
+    
+    Args:
+        maze: MazeGenerator instance to render,
+            display and access output file.
+    """
     render(maze, ansi=0, update=True)
     with open(maze.output_file, 'w') as file:
         file.write(display(maze))
     save_confirmation(maze)
 
 def save_hex(maze: MazeGenerator) -> None:
+    """Open the output file and writes the maze in hexadecimal,
+    the entry/exit and the path.
+    
+    Args:
+        maze: MazeGenerator instance to render,
+            display and access output file.
+    """
     hex_content: str = ''
     row: list[list[Cell]] = maze.grid
     for column in row:
@@ -43,6 +61,15 @@ def save_hex(maze: MazeGenerator) -> None:
     save_confirmation(maze=maze)
 
 def path_direction(maze: MazeGenerator) -> str:
+    """Get the path from entry to exit and returns a string.
+    
+    Args:
+        maze: MazeGenerator instance to render,
+            display and access output file.
+    Returns:
+        str: Return a string with the path in the following format
+            -> (WSEN...).
+    """
     path_dir: list[tuple[int, int]] = []
     direction: str = ''
     path_dir.append(maze.entry)

@@ -7,7 +7,27 @@ from . import Parsing
 from .cell import Cell, Pixel
 
 class MazeGenerator:
-    def __init__(self, config: Parsing):
+    """Store the maze data and generate the maze.
+
+    Attributes:
+        width: number of columns in the maze.
+        height: number of rows in the maze.
+        entry: coordinates of the maze entry point.
+        exit: coordinates of the maze exit point.
+        output_file: path to the output file.
+        perfect: whether the maze has a unique path between entry and exit.
+        algorithm: generation algorithm ('dfs' or 'prim').
+        seed: optional seed for reproducible generation.
+        grid: 2D grid of Cell reprenting the maze.
+        _path: path between entry and exit.
+        _show: whether the path displaying is active.
+        _wall: wall character of the maze.
+        _animation: whether the generation animation is active.
+        _mode: index of the current theme in THEMES.
+        _g_mode: current state of the game mode ('easy' or 'hard').
+        _pattern42: 42 pattern position in the maze.
+    """
+    def __init__(self, config: Parsing) -> None:
         self.width: int = config._width
         self.height: int = config._height
         self.entry: tuple[int, int] = config._entry
@@ -32,6 +52,15 @@ class MazeGenerator:
 
     def get_neighbors(self,
                       x: int, y: int, status: str) -> list[tuple[int, int]]:
+        """Return a tuple with visited or unvisited neighbors.
+
+        Args:
+            x: column of the current cell.
+            y: row of the current cell.
+            status: filter for neighbor type, either 'visited' or 'unvisited'.
+        Returns:
+            list[tuple[int, int]]: list of neighbors either visited or unvisited.
+        """
         nb: list[tuple] = []
         cell = self.grid
         neighbors = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
@@ -47,6 +76,9 @@ class MazeGenerator:
         return nb
 
     def init_grid(self) -> None:
+        """Initialize the 2D grid of Cell objects with their coordinates
+        and 3x3 Pixel matrix for rendering.
+        """
         self.grid = [
             [Cell() for _ in range(self.width)] for _ in range(self.height)]
         for pos_y, row in enumerate(self.grid):
@@ -56,6 +88,16 @@ class MazeGenerator:
                 cell.matrix = [[Pixel() for _ in range(3)] for _ in range(3)]
 
     def get_direction(self, x: int, y: int, nx: int, ny: int) -> str:
+        """Return string with the cardinal direction of the neighbor's cell.
+
+        Args:
+            x: column of the current cell.
+            y: row of the current cell.
+            nx: column of the neighbor's cell.
+            ny: row of the neighbor's cell.
+        Returns:
+            str: cardinal direction indicator ('W', 'S', 'E', 'N').
+        """
         direction: str = ''
         if nx > x:
             direction = 'E'
@@ -68,12 +110,22 @@ class MazeGenerator:
         return direction
 
     def knock_wall(self, x: int, y: int, nx: int, ny: int) -> None:
+        """Knock down wall between two cells.
+        
+        Args:
+            x: column of the current cell.
+            y: row of the current cell.
+            nx: column of the neighbor's cell.
+            ny: row of the neighbor's cell.
+        """
         opposite: dict = {'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'}
         direction: str = self.get_direction(x, y, nx, ny)
         self.grid[y][x].walls[direction] = False
         self.grid[ny][nx].walls[opposite[direction]] = False
 
     def generate(self) -> None:
+        """Run the selected generation algorithm, apply imperfection
+        if needed, compute the BFS path and render."""
         from . import render
         if self.seed:
             seed(self.seed)
@@ -88,6 +140,7 @@ class MazeGenerator:
         render(maze=self)
 
     def init_static(self) -> None:
+        """Initialize each cell of the 42 pattern to static."""
         cell = self.grid
         offset_x = (self.width - 7) // 2
         offset_y = (self.height - 5) // 2
@@ -102,6 +155,7 @@ class MazeGenerator:
             cell[ty][tx].visited = True
 
     def _animate(self) -> None:
+        """Animate the generation of the maze."""
         from . import render, display
         print('\033[H', end='')
         render(maze=self)
@@ -109,6 +163,8 @@ class MazeGenerator:
         sleep(0.001)
 
     def make_imperfect(self) -> None:
+        """Randomly knock down additional walls to create loops
+        and multiple paths in the maze."""
         s_e: dict[str, str] = {'E': 'EAST', 'S': 'SOUTH'}
         row = self.grid
         for column in row:
@@ -124,8 +180,8 @@ class MazeGenerator:
                                 self.knock_wall(x, y, nx, ny)
 
     def _dfs(self) -> None:
-        '''Depth-first search (DFS) is an algorithm used to traverse
-        or search through a data structure, such as a graph or tree.'''
+        """Generate the maze using Depth-First Search, carving
+        paths by recursively visiting unvisited neighbors."""
         self.init_grid()
         self.init_static()
         stack: list[tuple] = []
@@ -148,6 +204,8 @@ class MazeGenerator:
         system('clear')
 
     def _prim(self) -> None:
+        """Generate the maze using Prim's algorithm, growing
+        the maze from a random cell by expanding frontiers."""
         self.init_grid()
         self.init_static()
         frontiers: list[tuple[int, int]] = []
@@ -174,6 +232,12 @@ class MazeGenerator:
         system('clear')
 
     def _bfs(self, entry: tuple[int, int], exit: tuple[int, int]) -> None:
+        """Find the path in the maze between entry and exit.
+        
+        Args:
+            entry: coordinate of the entry point.
+            exit: coordinate of the exit point.
+        """
         opposite: dict[str, str] = {'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'}
         cell = self.grid
         x: int = 0

@@ -8,6 +8,14 @@ from .colors import THEMES, END
 from time import sleep
 
 def game_animation(maze: MazeGenerator, status: str) -> str:
+    """Return an ANSI string displaying 'YOU WIN' or 'GAME OVER'.
+
+    Args:
+        maze: MazeGenerator instance to access the maze dimensions.
+        status: game result, either 'win' or 'lose'.
+    Returns:
+        str: formatted ANSI string matching the game result.
+    """
     space: str = ''
     if status == 'win':
         space = (' ' * (((maze.width * 4) - 64) // 2)
@@ -65,8 +73,13 @@ def game_animation(maze: MazeGenerator, status: str) -> str:
     return lose
 
 def game_result(maze: MazeGenerator, result: str) -> None:
+    """Display the game result with the right ANSI string and animation
+    
+    Args:
+        maze: MazeGenerator instance to render and display the maze.
+        result: game result, either 'win' or 'lose'.
+    """
     from . import render, display
-    from .game import game_animation
     colors: list[str] = [
         THEMES[maze._mode][0],
         THEMES[maze._mode][3]
@@ -87,6 +100,11 @@ def game_result(maze: MazeGenerator, result: str) -> None:
                     return
 
 def play(maze: MazeGenerator) -> None:
+        """Detect key and move in the maze.
+
+        Args:
+            maze: MazeGenerator instance to render, display and access maze data
+        """
         system('clear')
         fd: int = sys.stdin.fileno()
         old_setting = termios.tcgetattr(fd)
