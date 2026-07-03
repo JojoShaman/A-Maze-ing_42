@@ -19,7 +19,7 @@ def run() -> None:
             animate = 'Turn off' if maze._animation else 'Turn on'
             try:
                 menu.user(maze, show_hide, animate)
-                command = input(f'\n{' ' * 5}Enter command: ')
+                command = input(f'\n{" " * 5}Enter command: ')
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
             if not command:

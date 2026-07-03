@@ -71,7 +71,7 @@ def user(maze: MazeGenerator, show: str, animation: str) -> None:
     print(f'{s}┃{s}{nb}↵{s}{colo}Generate maze{space * 10}┃')
     print(f'{s}┃{s}{nb}0{s}{colo}Choose generator{space * 7}┃')
     print(f'{s}┃{s}{nb}1{s}{colo}{show}{space * 14}┃')
-    print(f'{s}┃{s}{nb}2{s}{colo}Maze themes{space * 13}┃')
+    print(f'{s}┃{s}{nb}2{s}{colo}Maze themes{space * 12}┃')
     print(f'{s}┃{s}{nb}3{s}{colo}Change wall type{space * 7}┃')
     print(f'{s}┃{s}{nb}4{s}{colo}Save rending{space * 11}┃')
     print(f'{s}┃{s}{nb}5{s}{colo}Save hex{space * 15}┃')
