@@ -65,10 +65,10 @@ def run() -> None:
                     try:
                         print(THEMES[maze._mode][0])
                         THEMES_input = input(
-                            (' ' * 18) + 'Chose your THEMES: ')
+                            (' ' * 18) + 'Chose your THEME: ')
                         if not THEMES_input or THEMES_input == 'b':
                             break
-                        if int(THEMES_input) <= 4:
+                        if int(THEMES_input) <= 4 and int(THEMES_input) > 0:
                             maze._mode = int(THEMES_input)
                             break
                         else:
