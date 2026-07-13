@@ -8,9 +8,13 @@ version = "1.0.0"
 description = "A maze generator with DFS and Prim's algorithms."
 authors = [
     {name = "Sorin Rosu", email = "srosu@student.42belgium.be"}
+    {name = "Nameen Junaidi", email = "njunaidi@student.42belgium.be"}
 ]
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "numpy>=2.2.6",
+    "pydantic>=2.13.4",
+]
 
 [project.optional-dependencies]
 dev = ["flake8", "mypy", "build"]
