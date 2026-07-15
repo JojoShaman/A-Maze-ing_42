@@ -44,7 +44,19 @@ neighbors to the frontier. The maze is complete when the frontier is
 empty. Because the maze grows from many points at once, Prim produces
 bushy mazes with lots of short branches and many small dead ends.
 
-#### 5.3) BFS
+#### 5.3) BFS (Breadth First Search)
+
+Unlike DFS and Prim which generate the maze, BFS (Breadth-First Search)
+is used to solve it. It explores the maze like a wave spreading from the
+entry: first all the cells at distance 1, then all the cells at distance
+2, and so on, using a queue (first in, first out). Every time a cell is
+discovered, the algorithm records which cell it was reached from in a
+dictionary. When the wave reaches the exit, the path is rebuilt by
+walking backwards through that dictionary, from the exit to the entry.
+Because the wave advances level by level in every direction at once, the
+first time it reaches the exit is guaranteed to be through the shortest
+path. This path is the one displayed by the "show path" option and
+exported in the hexadecimal format.
 
 
 ## The code explanation:
@@ -177,7 +189,20 @@ q       quit
 
 ### **3) command python3 -m build ***
 
-//Construit ton package 
+The project is packaged with setuptools (see `pyproject.toml`). To build
+the distribution files:
+
+```bash
+pip install build          # install the build tool
+python -m build            # build the package
+```
+
+This creates a `dist/` folder containing a source archive (`.tar.gz`)
+and a wheel (`.whl`). The package can then be installed with:
+
+```bash
+pip install dist/mazegen-1.0.0-py3-none-any.whl
+```
 
 ## **Resources**
  
