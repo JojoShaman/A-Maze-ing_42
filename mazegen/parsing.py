@@ -3,7 +3,7 @@ from .colors import RED, END
 
 class Parsing():
     """Store parsed data from configuration file.
-    
+
     Attributes:
         _width: number of columns in the maze.
         _height: number of rows in the maze.
@@ -26,7 +26,7 @@ class Parsing():
 
     def parse(self, file: str) -> None:
         """Parse the configuration file parameters with error management.
-        
+
         Args:
             file: path to configuration file."""
         errors: list = []

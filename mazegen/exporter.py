@@ -8,7 +8,7 @@ from .cell import Cell
 
 def save_confirmation(maze: MazeGenerator) -> None:
     """Print save confirmation with blinking animation.
-    
+
     Args:
         maze: MazeGenerator instance to render, display and access output file.
     """
@@ -26,9 +26,10 @@ def save_confirmation(maze: MazeGenerator) -> None:
             sleep(0.6)
         system('clear')
 
+
 def save(maze: MazeGenerator) -> None:
     """Open the output file and writes the maze rendered.
-    
+
     Args:
         maze: MazeGenerator instance to render,
             display and access output file.
@@ -38,10 +39,11 @@ def save(maze: MazeGenerator) -> None:
         file.write(display(maze))
     save_confirmation(maze)
 
+
 def save_hex(maze: MazeGenerator) -> None:
     """Open the output file and writes the maze in hexadecimal,
     the entry/exit and the path.
-    
+
     Args:
         maze: MazeGenerator instance to render,
             display and access output file.
@@ -60,9 +62,10 @@ def save_hex(maze: MazeGenerator) -> None:
         file.write(hex_content)
     save_confirmation(maze=maze)
 
+
 def path_direction(maze: MazeGenerator) -> str:
     """Get the path from entry to exit and returns a string.
-    
+
     Args:
         maze: MazeGenerator instance to render,
             display and access output file.

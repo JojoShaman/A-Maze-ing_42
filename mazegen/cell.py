@@ -1,6 +1,6 @@
 class Pixel:
     """Store a character and it's background.
-    
+
     Attributes:
         px: visual represention of the pixel.
         bg: visual represention of the background of the pixel.
@@ -11,16 +11,17 @@ class Pixel:
 
     def render_helper(self) -> str:
         """Return a string with the background and the character of a pixel.
-        
+
         Returns:
             str: concatenated string with the background and
             the character of the pixel
         """
         return self.bg + self.px
 
+
 class Cell:
     """Store the data of a single maze cell.
-    
+
     Attributes:
         walls: dict of wall states for each cardinal direction.
         visited: whether the cell has been visited during the generation.

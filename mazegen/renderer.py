@@ -6,37 +6,37 @@ import sys
 from .generator import MazeGenerator
 from .cell import Cell
 
-def display(maze: MazeGenerator) -> str:
-        """Return the maze visual representation.
-        
-        Args:
-            maze: MazeGenerator instance to access the maze grid and dimensions.
-        Returns:
-            str: Returns a string with the visual represention of the maze."""
-        matrix = ''
-        for y, row in enumerate(maze.grid):
-            for m_row in range(3):
-                if m_row == 2 and y < maze.height - 1:
-                    continue
-                for x, cell in enumerate(row):
-                    for m_col in range(3):
-                        if m_col == 0 and x > 0:
-                            continue
-                        matrix += (cell.matrix[m_row][m_col].render_helper())
-                matrix += '\n'
-        return matrix
 
-def render(maze: MazeGenerator,
-            ansi: int = 1, update: bool = False,
-            play: bool = False) -> None:
+def display(maze: MazeGenerator) -> str:
+    """Return the maze visual representation.
+
+    Args:
+        maze: MazeGenerator instance to access the maze grid and dimensions.
+    Returns:
+        str: Returns a string with the visual represention of the maze."""
+    matrix = ''
+    for y, row in enumerate(maze.grid):
+        for m_row in range(3):
+            if m_row == 2 and y < maze.height - 1:
+                continue
+            for x, cell in enumerate(row):
+                for m_col in range(3):
+                    if m_col == 0 and x > 0:
+                        continue
+                    matrix += (cell.matrix[m_row][m_col].render_helper())
+            matrix += '\n'
+    return matrix
+
+
+def render(maze: MazeGenerator, ansi: int = 1, update: bool = False,
+           play: bool = False) -> None:
     """Render the maze with ANSI code and characters.
-    
+
     Args:
         maze: MazeGenerator instance to access maze data.
         ansi: 1 for ANSI colors, 0 for plain text.
         update: whether to skip path animation and update silently.
-        play: whether it's game mode 
-    """
+        play: whether it's game mode """
     is_ansi: list[list[str]] = [
         [(''), (''), (''), ('')],
 
@@ -107,9 +107,11 @@ def render(maze: MazeGenerator,
         system('clear')
     termios.tcflush(sys.stdin, termios.TCIFLUSH)
 
-def draw_path(maze: MazeGenerator, update: bool = False, ansi_mode: int = 1) -> None:
+
+def draw_path(maze: MazeGenerator, update: bool = False,
+              ansi_mode: int = 1) -> None:
     """Draw visual representation of the path.
-    
+
     Args:
         maze: MazeGenerator instance to access maze data and display.
         update: whether to skip path animation and update silently.
