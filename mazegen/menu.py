@@ -18,7 +18,7 @@ def show_themes() -> None:
 def algo(algorithm: str, theme: str) -> None:
     """Display the algorithm selection menu
     with the current selection highlighted.
-    
+
     Args:
         algorithm: currently selected generation algorithm ('dfs' or 'prim').
         theme: ANSI color code string for the current theme.
@@ -37,7 +37,7 @@ def algo(algorithm: str, theme: str) -> None:
 def game_mode(color_mode: int, game: str) -> None:
     """Display the difficulty selection menu
     with the current selection highlighted.
-    
+
     Args:
         color_mode: index of the current theme in THEMES.
         game: currently selected difficulty ('easy' or 'hard').
@@ -55,7 +55,7 @@ def game_mode(color_mode: int, game: str) -> None:
 
 def user(maze: MazeGenerator, show: str, animation: str) -> None:
     """Display the main menu with all available commands.
-    
+
     Args:
         maze: MazeGenerator instance to access theme and animation state.
         show: label for the show/hide path option.

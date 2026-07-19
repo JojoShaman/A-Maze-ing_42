@@ -6,6 +6,7 @@ from os import system
 from . import Parsing
 from .cell import Cell, Pixel
 
+
 class MazeGenerator:
     """Store the maze data and generate the maze.
 
@@ -59,7 +60,7 @@ class MazeGenerator:
             y: row of the current cell.
             status: filter for neighbor type, either 'visited' or 'unvisited'.
         Returns:
-            list[tuple[int, int]]: list of neighbors either visited or unvisited.
+            list[tuple[int, int]]: list of neighbors visited or unvisited.
         """
         nb: list[tuple] = []
         cell = self.grid
@@ -111,7 +112,7 @@ class MazeGenerator:
 
     def knock_wall(self, x: int, y: int, nx: int, ny: int) -> None:
         """Knock down wall between two cells.
-        
+
         Args:
             x: column of the current cell.
             y: row of the current cell.
@@ -233,7 +234,7 @@ class MazeGenerator:
 
     def _bfs(self, entry: tuple[int, int], exit: tuple[int, int]) -> None:
         """Find the path in the maze between entry and exit.
-        
+
         Args:
             entry: coordinate of the entry point.
             exit: coordinate of the exit point.
