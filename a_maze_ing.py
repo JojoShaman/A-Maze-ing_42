@@ -117,7 +117,7 @@ def run() -> None:
                 render(maze=maze, update=True)
                 print(display(maze))
             elif command == '6':
-                gm: dict = {
+                gm: dict[str, str] = {
                     '0': 'easy',
                     '1': 'hard'
                 }

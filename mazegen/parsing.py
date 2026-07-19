@@ -1,4 +1,5 @@
 from .colors import RED, END
+from typing import Any
 
 
 class Parsing():
@@ -29,12 +30,12 @@ class Parsing():
 
         Args:
             file: path to configuration file."""
-        errors: list = []
+        errors: list[Any] = []
         with open(file, 'r') as f:
             content = f.read()
-        lines: list = [line for line in content.splitlines() if
+        lines: list[str] = [line for line in content.splitlines() if
                        line.strip() and not line.startswith('#')]
-        p: dict = {key: value for key, value in
+        p: dict[str, str] = {key: value for key, value in
                    (line.split('=')for line in lines)}
         try:
             self._width = int(p['WIDTH'])

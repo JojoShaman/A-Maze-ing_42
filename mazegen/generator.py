@@ -44,7 +44,7 @@ class MazeGenerator:
         self._animation: bool = False
         self._mode: int = 0
         self._g_mode: str = 'easy'
-        self._pattern42: list[tuple] = [
+        self._pattern42: list[tuple[int, int]] = [
             (0, 0), (0, 1), (0, 2), (1, 2), (2, 2),
             (2, 3), (2, 4),  # 4
             (4, 0), (5, 0), (6, 0), (6, 1), (6, 2),
@@ -62,7 +62,7 @@ class MazeGenerator:
         Returns:
             list[tuple[int, int]]: list of neighbors visited or unvisited.
         """
-        nb: list[tuple] = []
+        nb: list[tuple[int, int]] = []
         cell = self.grid
         neighbors = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
         for nx, ny in neighbors:
@@ -119,7 +119,7 @@ class MazeGenerator:
             nx: column of the neighbor's cell.
             ny: row of the neighbor's cell.
         """
-        opposite: dict = {'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'}
+        opposite: dict[str, str] = {'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'}
         direction: str = self.get_direction(x, y, nx, ny)
         self.grid[y][x].walls[direction] = False
         self.grid[ny][nx].walls[opposite[direction]] = False
@@ -185,7 +185,7 @@ class MazeGenerator:
         paths by recursively visiting unvisited neighbors."""
         self.init_grid()
         self.init_static()
-        stack: list[tuple] = []
+        stack: list[tuple[int, int]] = []
         stack.append(self.entry)
         cell = self.grid
         cell[self.entry[1]][self.entry[0]].visited = True
@@ -245,7 +245,7 @@ class MazeGenerator:
         y: int = 0
         visited: set[tuple[int, int]] = set()
         came_from: dict[tuple[int, int], tuple[int, int]] = {}
-        queue: deque = deque()
+        queue: deque[tuple[int, int]] = deque()
         visited.add(entry)
         queue.append(entry)
         came_from[entry] = entry
