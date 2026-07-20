@@ -259,8 +259,7 @@ class MazeGenerator:
                         ny >= 0 and ny < self.height):
                     if (nx, ny) not in visited:
                         direction: str = self.get_direction(x, y, nx, ny)
-                        if not (cell[y][x].walls[direction]
-                                and cell[ny][nx].walls[opposite[direction]]):
+                        if not cell[y][x].walls[direction]:
                             queue.append((nx, ny))
                             came_from[(nx, ny)] = (x, y)
                             visited.add((nx, ny))
