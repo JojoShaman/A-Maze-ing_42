@@ -239,35 +239,35 @@ class MazeGenerator:
             entry: coordinate of the entry point.
             exit: coordinate of the exit point.
         """
-        opposite: dict[str, str] = {'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'}
-        cell = self.grid
+        opposite: dict[str, str] = {
+            'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'} # Opposite direction helper.
+        cell = self.grid # Alias for maze grid.
         x: int = 0
         y: int = 0
-        visited: set[tuple[int, int]] = set()
-        came_from: dict[tuple[int, int], tuple[int, int]] = {}
-        queue: deque[tuple[int, int]] = deque()
+        visited: set[tuple[int, int]] = set() # Set for visited cell in order to avoid infinite loops.
+        came_from: dict[tuple[int, int], tuple[int, int]] = {} # Dict containing a cell and it's previous one.
+        queue: deque[tuple[int, int]] = deque() # cells to visit next, in discovery order.
         visited.add(entry)
         queue.append(entry)
         came_from[entry] = entry
-        while queue:
-            x, y = queue.popleft()
-            if (x, y) == exit:
+        while queue: # While there are cells remaining in the queue, we iterate.
+            x, y = queue.popleft() # Unpacking the first object in the queue in order to obtain x, y positions.
+            if (x, y) == exit: # Condition to break the loop if we're in exit position.
                 break
-            neighbours = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)]
-            for nx, ny in neighbours:
+            neighbours = [(x, y-1), (x+1, y), (x, y+1), (x-1, y)] # The four adjacent cells: North, East, South, West.
+            for nx, ny in neighbours: # Unpack the position of the neighbor in each iteration.
                 if (nx >= 0 and nx < self.width and
-                        ny >= 0 and ny < self.height):
+                        ny >= 0 and ny < self.height): # Checking if the neighbor is withing grid bounds.
                     if (nx, ny) not in visited:
-                        direction: str = self.get_direction(x, y, nx, ny)
-                        if not (cell[y][x].walls[direction]
-                                and cell[ny][nx].walls[opposite[direction]]):
-                            queue.append((nx, ny))
-                            came_from[(nx, ny)] = (x, y)
-                            visited.add((nx, ny))
-        current = (exit)
-        p: list[tuple[int, int]] = []
-        p.append(current)
-        while current != entry:
-            current = came_from[current]
-            p.append(current)
-        self._path = list(reversed(p))
+                        direction: str = self.get_direction(x, y, nx, ny) # If the neighbor hasn't been visited, get its direction from the current cell.
+                        if not cell[y][x].walls[direction]: # With this condition we check if the wall between both cells is open.
+                            queue.append((nx, ny)) # if the wall is open we append the neighbor's position at the end of the queue.
+                            came_from[(nx, ny)] = (x, y) # Here we attribute the provenance of the neighbor.
+                            visited.add((nx, ny)) # Here we add the neighbor to the visited set.
+        current = (exit) # This variable serves as a tracker starting at the end of the path.
+        p: list[tuple[int, int]] = [] # This list will contain the final path (end to start order).
+        p.append(current) # Here we init the p list with current cell's coordinates which is the exit.
+        while current != entry: # While the current cell is not the entry we itterate.
+            current = came_from[current] # The current becomes before it.
+            p.append(current) # Here we append the current to the p list.
+        self._path = list(reversed(p)) # Finally, we invert the whole p list in the right order and assign it to the Class variable _path.
