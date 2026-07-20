@@ -183,26 +183,26 @@ class MazeGenerator:
     def _dfs(self) -> None:
         """Generate the maze using Depth-First Search, carving
         paths by recursively visiting unvisited neighbors."""
-        self.init_grid()
-        self.init_static()
-        stack: list[tuple[int, int]] = []
-        stack.append(self.entry)
-        cell = self.grid
-        cell[self.entry[1]][self.entry[0]].visited = True
-        while stack:
-            x, y = stack[-1]
-            neighbors = self.get_neighbors(x, y, 'unvisited')
-            if neighbors:
-                n = choice(neighbors)
-                self.knock_wall(x, y, n[0], n[1])
-                cell[n[1]][n[0]].visited = True
-                stack.append(n)
+        self.init_grid() # Initialize the grid (all cells with walls, unvisited).
+        self.init_static() # Initialize static cells (fixed cells, not modifiable).
+        stack: list[tuple[int, int]] = []  # LIFO stack tracking the current path being carved.
+        stack.append(self.entry) # Start carving from the entry cell.
+        cell = self.grid # Alias for maze grid.
+        cell[self.entry[1]][self.entry[0]].visited = True # Mark the entry cell as visited.
+        while stack: # While there's still a path to explore or backtrack from.
+            x, y = stack[-1] # Look at the current cell (top of stack), without removing it yet.
+            neighbors = self.get_neighbors(x, y, 'unvisited') # Get all unvisited neighbors of the current cell.
+            if neighbors: # If there's at least one unvisited neighbor to carve into.
+                n = choice(neighbors) # Randomly pick one unvisited neighbor to move into.
+                self.knock_wall(x, y, n[0], n[1]) # Break the wall between current cell and the chosen neighbor.
+                cell[n[1]][n[0]].visited = True # Mark the chosen neighbor as visited.
+                stack.append(n) # Push it onto the stack, it becomes the new current cell (go deeper).
 
-            else:
-                stack.pop()
-            if self._animation:
-                self._animate()
-        system('clear')
+            else: # If there are no unvisited neighbors left (dead end).
+                stack.pop() # Backtrack: remove current cell from stack, return to the previous one.
+            if self._animation: # If animation mode is enabled.
+                self._animate() # Display the current generation step.
+        system('clear') # Clear the terminal once generation is complete.
 
     def _prim(self) -> None:
         """Generate the maze using Prim's algorithm, growing
