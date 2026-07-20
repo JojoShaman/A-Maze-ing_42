@@ -207,30 +207,30 @@ class MazeGenerator:
     def _prim(self) -> None:
         """Generate the maze using Prim's algorithm, growing
         the maze from a random cell by expanding frontiers."""
-        self.init_grid()
-        self.init_static()
-        frontiers: list[tuple[int, int]] = []
-        cell = self.grid
-        while True:
-            x = randint(0, self.width - 1)
-            y = randint(0, self.height - 1)
-            if cell[y][x].static:
+        self.init_grid() # Initialize the grid (all cells with walls, unvisited).
+        self.init_static() # Initialize static cells (fixed cells, not modifiable).
+        frontiers: list[tuple[int, int]] = []  # Cells adjacent to visited cells, but not yet visited themselves.
+        cell = self.grid # Alias for maze grid.
+        while True: # Loop until a valid non-static starting cell is found.
+            x = randint(0, self.width - 1) # Random x coordinate.
+            y = randint(0, self.height - 1) # Random y coordinate.
+            if cell[y][x].static: # If the cell is static, discard it and retry.
                 continue
-            break
-        cell[y][x].visited = True
-        frontiers.extend(self.get_neighbors(x, y, 'unvisited'))
-        while frontiers:
-            n = choice(frontiers)
-            frontiers.remove(n)
-            v = choice(self.get_neighbors(n[0], n[1], 'visited'))
-            self.knock_wall(n[0], n[1], v[0], v[1])
-            cell[n[1]][n[0]].visited = True
+            break # Valid starting cell found, exit the loop.
+        cell[y][x].visited = True # Mark the starting cell as visited.
+        frontiers.extend(self.get_neighbors(x, y, 'unvisited')) # Add starting cell's unvisited neighbors as initial frontiers.
+        while frontiers: # While there are frontier cells left to process.
+            n = choice(frontiers) # Randomly pick a frontier cell to expand next.
+            frontiers.remove(n) # Remove it from the list since it's about to be processed.
+            v = choice(self.get_neighbors(n[0], n[1], 'visited')) # Randomly pick one of its already-visited neighbors to connect to.
+            self.knock_wall(n[0], n[1], v[0], v[1]) # Break the wall between the frontier cell and its chosen visited neighbor.
+            cell[n[1]][n[0]].visited = True # Mark the frontier cell as visited, it now belongs to the maze.
             frontiers.extend(
                 [c for c in self.get_neighbors(n[0], n[1], 'unvisited') if
-                 c not in frontiers])
-            if self._animation:
-                self._animate()
-        system('clear')
+                 c not in frontiers]) # Add the newly visited cell's unvisited neighbors to frontiers, avoiding duplicates.
+            if self._animation: # If animation mode is enabled.
+                self._animate() # Display the current generation step.
+        system('clear') # Clear the terminal once generation is complete.
 
     def _bfs(self, entry: tuple[int, int], exit: tuple[int, int]) -> None:
         """Find the path in the maze between entry and exit.
