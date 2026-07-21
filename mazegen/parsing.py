@@ -34,9 +34,9 @@ class Parsing():
         with open(file, 'r') as f:
             content = f.read()
         lines: list[str] = [line for line in content.splitlines() if
-                       line.strip() and not line.startswith('#')]
+                            line.strip() and not line.startswith('#')]
         p: dict[str, str] = {key: value for key, value in
-                   (line.split('=')for line in lines)}
+                             (line.split('=')for line in lines)}
         try:
             self._width = int(p['WIDTH'])
             if self._width < 0:

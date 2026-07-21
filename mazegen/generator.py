@@ -239,7 +239,6 @@ class MazeGenerator:
             entry: coordinate of the entry point.
             exit: coordinate of the exit point.
         """
-        opposite: dict[str, str] = {'E': 'W', 'W': 'E', 'N': 'S', 'S': 'N'}
         cell = self.grid
         x: int = 0
         y: int = 0
