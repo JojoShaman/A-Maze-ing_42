@@ -53,13 +53,17 @@ def game_mode(color_mode: int, game: str) -> None:
     print((' ' * 20) + 'b    go back\n', END)
 
 
-def user(maze: MazeGenerator, show: str, animation: str) -> None:
+def user(maze: MazeGenerator,
+         show: str,
+         animation: str,
+         is_perfect: str) -> None:
     """Display the main menu with all available commands.
 
     Args:
         maze: MazeGenerator instance to access theme and animation state.
         show: label for the show/hide path option.
         animation: label for the animation toggle option.
+        is_perfect: label for the perfect/imperfect option.
     """
     s = ' ' * 4
     space = ' '
@@ -78,6 +82,8 @@ def user(maze: MazeGenerator, show: str, animation: str) -> None:
     print(f'{s}┃{s}{nb}6{s}{colo}Game{space * 19}┃')
     print(f'{s}┃{s}{nb}7{s}{colo}{animation} ' +
           f'animation{space * 5 if maze._animation else space * 6}┃')
+    print(f'{s}┃{s}{nb}8{s}{colo}Make {is_perfect}{
+        space * 9 if maze.perfect else space * 11}┃')
     print(f'{s}┃{space * 32}┃')
     print(f'{s}┃{s}{nb}q{s}{colo}quit{space * 19}┃')
     print(f'{s}┃{space * 32}┃')

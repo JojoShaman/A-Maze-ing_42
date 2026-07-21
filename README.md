@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by srosu, njunaidi.*
+_This project has been created as part of the 42 curriculum by srosu, njunaidi._
 
 # A-Maze-ing
 
@@ -91,12 +91,12 @@ exit to the entry.
 - **Shortest path guaranteed**: because the wave advances level by level
   in every direction at once, the first time it reaches the exit is
   necessarily through the **shortest path**. A DFS-based solver would
-  find *a* path, but not necessarily the shortest one — this matters for
+  find _a_ path, but not necessarily the shortest one — this matters for
   imperfect mazes, which have several possible paths.
 - **Simplicity**: BFS only needs a queue (`collections.deque`), a
   visited set and a dictionary — no weights, no heuristics. Since all
   moves in the maze have the same cost, more complex algorithms like
-  Dijkstra or A* would bring nothing here.
+  Dijkstra or A\* would bring nothing here.
 - **Used everywhere in the program**: the path found by BFS is the one
   displayed by the "show path" option, exported in the hexadecimal
   format, and recomputed after each game.
@@ -113,7 +113,7 @@ HEIGHT=15           # number of rows (integer, min 5)
 ENTRY=0,0           # entry coordinates x,y (inside the maze)
 EXIT=19,14          # exit coordinates x,y (inside the maze)
 OUTPUT_FILE=maze.txt   # file used by the save options
-PERFECT=True        # True: unique solution, False: loops allowed
+PERFECT=False        # True: unique solution, False: usable by a Pac-Man-like game.
 ALGORITHM=dfs       # generation algorithm: dfs or prim
 #SEED=12            # optional, integer, for reproducible mazes
 ```
@@ -160,7 +160,7 @@ explanation.
 This is the **heart of the project**. The `MazeGenerator` class stores
 the grid (a 2D list of `Cell` objects) and everything happens by
 knocking down walls between two neighboring cells (`knock_wall()`). The
-generation itself is done either by `_dfs()`  or `_prim()` (a frontier-based growth algorithm). Once the
+generation itself is done either by `_dfs()` or `_prim()` (a frontier-based growth algorithm). Once the
 maze is generated, `_bfs()` finds the shortest path between the entry
 and the exit: it explores the maze level by level using a queue, records
 where each cell was reached from in a `came_from` dictionary, then walks

@@ -1,4 +1,4 @@
-from random import choice, randint, random, seed
+from random import choice, randint, seed
 from .colors import END, RED
 from collections import deque
 from time import sleep
@@ -143,7 +143,7 @@ class MazeGenerator:
     def init_static(self) -> None:
         """Initialize each cell of the 42 pattern to static."""
         cell = self.grid
-        offset_x = (self.width - 7) // 2
+        offset_x = (self.width - 6) // 2
         offset_y = (self.height - 5) // 2
         for rel_x, rel_y in self._pattern42:
             tx: int = offset_x + rel_x
@@ -163,22 +163,37 @@ class MazeGenerator:
         print(display(self))
         sleep(0.001)
 
+    def closed_walls(self, x: int, y: int) -> list[tuple[str, bool]]:
+        cw: list[tuple[str, bool]] = []
+        cell = self.grid[y][x]
+        for wall in cell.walls.items():
+            if wall[1]:
+                cw.append(wall)
+        return cw
+
     def make_imperfect(self) -> None:
-        """Randomly knock down additional walls to create loops
-        and multiple paths in the maze."""
-        s_e: dict[str, str] = {'E': 'EAST', 'S': 'SOUTH'}
+        """Transforms a perfect maze into a Pac-Man-like board by ensuring
+        full connectivity, eliminating dead-ends and guaranteeing that
+        corner cells have at least two open passages."""
+        direction_map: list[dict[str, str]] = [
+            {'NORTH': 'N', 'SOUTH': 'S', 'EAST': 'E', 'WEST': 'W'},
+            {'N': 'NORTH', 'S': 'SOUTH', 'E': 'EAST', 'W': 'WEST'}]
         row = self.grid
         for column in row:
             for cell in column:
                 x, y = cell.x, cell.y
-                for wall, neighbour in s_e.items():
-                    if cell.walls[wall] and not cell.static:
-                        nx, ny = cell.neighbors()[neighbour]
+                c_w = self.closed_walls(x, y)
+                if len(c_w) == 3:
+                    while c_w:
+                        r_wall = choice(c_w)
+                        c_w.remove(r_wall)
+                        nx, ny = cell.neighbors()[direction_map[1][r_wall[0]]]
                         if (nx >= 0 and nx < self.width and
                             ny >= 0 and ny < self.height and
-                                not row[ny][nx].static):
-                            if random() < 0.15:
-                                self.knock_wall(x, y, nx, ny)
+                            not row[ny][nx].static and
+                                not row[y][x].static):
+                            self.knock_wall(x, y, nx, ny)
+                            break
 
     def _dfs(self) -> None:
         """Generate the maze using Depth-First Search, carving

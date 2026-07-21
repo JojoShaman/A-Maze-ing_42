@@ -17,8 +17,9 @@ def run() -> None:
         while True:
             show_hide = 'Hide path' if maze._show else 'Show path'
             animate = 'Turn off' if maze._animation else 'Turn on'
+            perfect = 'imperfect' if maze.perfect else 'perfect'
             try:
-                menu.user(maze, show_hide, animate)
+                menu.user(maze, show_hide, animate, perfect)
                 command = input(f'\n{" " * 5}Enter command: ')
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
@@ -154,6 +155,13 @@ def run() -> None:
                 system('clear')
                 print(display(maze))
                 continue
+            elif command == '8':
+                maze.perfect = False if maze.perfect else True
+                if maze._show:
+                    maze._show = False
+                system('clear')
+                maze.generate()
+                print(display(maze))
             elif command == 'q':
                 print('Program closed')
                 return
