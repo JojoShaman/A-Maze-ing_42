@@ -9,7 +9,7 @@ description = "A maze generator with DFS and Prim's algorithms."
 authors = [
     {name = "Sorin Rosu", email = "srosu@student.42belgium.be"}]
 requires-python = ">=3.10"
-license = {file = "LICENCE.md"}
+license = {file = "LICENSE.md"}
 
 [project.optional-dependencies]
 dev = ["flake8", "mypy", "build"]
