@@ -133,7 +133,7 @@ Rules:
 a_maze_ing.py        entry point and interactive menu loop
 config.txt           example configuration file
 Makefile             shortcuts to run, lint, debug and clean the project
-pyproject.toml       package configuration (setuptools)
+pyproject.toml       p
 mazegen/             the maze generation package
 ├── __init__.py      exposes the public functions and classes of the package
 ├── parsing.py       reads and validates the configuration file
