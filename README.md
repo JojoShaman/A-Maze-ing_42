@@ -203,6 +203,18 @@ file, and only raises at the end with the full list. This way the user
 sees everything that is wrong with their file in one run instead of
 fixing errors one by one.
 
+#### 1.5.5 exporter.py
+
+#### 1.5.5 exporter.py
+
+This file handles the two save options of the menu. `save()` writes the
+maze as plain text, exactly as it appears on screen (walls, entry, exit
+and the path if it is displayed), without any color codes.
+`save_hex()` writes the same maze as data instead: the walls of every
+cell as hex digits, the entry and exit coordinates, and the solution
+path as cardinal moves. Both write to the file given by `OUTPUT_FILE`
+in the configuration.
+
 ### 1.6 Reusable code
 
 The project is built as an **installable Python package** (`mazegen`),
@@ -237,9 +249,6 @@ maze.generate()
 ## 2. Instructions
 
 ### 2.1 How to run the program
-
-***// On mets le git clone de notre projet ou on dit juste d'installer le fichier et puis make run avec leur config texte ***
-You can also run it directly with your own configuration file:
 
 ```bash
 python3 a_maze_ing.py my_config.txt
@@ -296,10 +305,18 @@ q       quit
 
 ### 3.1 Roles
 
-- **<login1>**: <e.g. maze generation (DFS, Prim), BFS solver, parsing>
-- **<login2>**: <e.g. rendering engine, menu, mini-game, exports>
+- **srosu**: architecture and core engine — `a_maze_ing.py` (entry point
+  and interactive menu loop), `generator.py` (grid handling, DFS and
+  Prim generation, BFS solving, "42" pattern), `game.py` (the arrow-key
+  mini-game) and `renderer.py`. He designed how the different modules
+  fit together and wrote most of the program logic.
 
-Both members reviewed each other's code before merging.
+- **nameen**: presentation and configuration layer — `cell.py` (the
+  `Cell` and `Pixel` data structures), `colors.py` and the color themes,
+  `menu.py` (menu screens), `parsing.py` (configuration file reading and
+  validation) and `exporter.py` (text and hexadecimal exports).
+
+Both members reviewed each other's code before merging
 
 ### 3.2 Planning and how it evolved
 
