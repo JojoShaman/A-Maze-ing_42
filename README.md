@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by <login1>, <login2>.*
+*This project has been created as part of the 42 curriculum by srosu, njunaidi.*
 
 # A-Maze-ing
 
@@ -108,10 +108,10 @@ command-line argument. It uses a simple **KEY=VALUE** format, one
 parameter per line:
 
 ```
-WIDTH=35            # number of columns (integer, min 7)
-HEIGHT=20           # number of rows (integer, min 5)
+WIDTH=20            # number of columns (integer, min 7)
+HEIGHT=15           # number of rows (integer, min 5)
 ENTRY=0,0           # entry coordinates x,y (inside the maze)
-EXIT=34,19          # exit coordinates x,y (inside the maze)
+EXIT=19,14          # exit coordinates x,y (inside the maze)
 OUTPUT_FILE=maze.txt   # file used by the save options
 PERFECT=True        # True: unique solution, False: loops allowed
 ALGORITHM=dfs       # generation algorithm: dfs or prim
