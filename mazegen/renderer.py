@@ -1,4 +1,4 @@
-from .colors import THEMES, END
+from .colors import THEMES, END, RED
 from os import system
 from time import sleep
 import termios
@@ -25,6 +25,8 @@ def display(maze: MazeGenerator) -> str:
                         continue
                     matrix += (cell.matrix[m_row][m_col].render_helper())
             matrix += '\n'
+    if maze.width <= 7 or maze.height <= 5:
+        matrix += f"\n{RED}Error: Maze size too small for '42' pattern.{END}\n"
     return matrix
 
 

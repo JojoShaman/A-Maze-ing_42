@@ -6,13 +6,13 @@ from .renderer import render, display
 from .cell import Cell
 
 
-def save_confirmation(maze: MazeGenerator) -> None:
+def save_confirmation(maze: MazeGenerator, type: str) -> None:
     """Print save confirmation with blinking animation.
 
     Args:
         maze: MazeGenerator instance to render, display and access output file.
     """
-    _save = GREEN + f'    file saved: {maze.output_file}' + END
+    _save = GREEN + f'    {type} file saved: {maze.output_file}' + END
     render(maze, update=True)
     system('clear')
     for x in range(3):
@@ -37,10 +37,10 @@ def save(maze: MazeGenerator) -> None:
     render(maze, ansi=0, update=True)
     with open(maze.output_file, 'w') as file:
         file.write(display(maze))
-    save_confirmation(maze)
+    save_confirmation(maze=maze, type='Render')
 
 
-def save_hex(maze: MazeGenerator) -> None:
+def save_hex(maze: MazeGenerator, auto_save: bool = True) -> None:
     """Open the output file and writes the maze in hexadecimal,
     the entry/exit and the path.
 
@@ -60,7 +60,8 @@ def save_hex(maze: MazeGenerator) -> None:
     hex_content += path_direction(maze=maze)
     with open(maze.output_file, 'w') as file:
         file.write(hex_content)
-    save_confirmation(maze=maze)
+    if not auto_save:
+        save_confirmation(maze=maze, type='Hex')
 
 
 def path_direction(maze: MazeGenerator) -> str:

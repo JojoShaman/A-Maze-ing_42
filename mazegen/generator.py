@@ -5,6 +5,7 @@ from time import sleep
 from os import system
 from . import Parsing
 from .cell import Cell, Pixel
+from typing import Optional
 
 
 class MazeGenerator:
@@ -36,7 +37,7 @@ class MazeGenerator:
         self.output_file: str = config._output_file
         self.perfect: bool = config._perfect
         self.algorithm: str = config._algorithm
-        self.seed: int = config._seed
+        self.seed: Optional[None | int] = config._seed
         self.grid: list[list[Cell]] = []
         self._path: list[tuple[int, int]] = []
         self._show: bool = False
@@ -128,6 +129,7 @@ class MazeGenerator:
         """Run the selected generation algorithm, apply imperfection
         if needed, compute the BFS path and render."""
         from . import render
+        from . import hex
         if self.seed:
             seed(self.seed)
         if self.algorithm == 'dfs':
@@ -139,21 +141,23 @@ class MazeGenerator:
         self._path = []
         self._bfs(self.entry, self.exit)
         render(maze=self)
+        hex(self)
 
     def init_static(self) -> None:
         """Initialize each cell of the 42 pattern to static."""
-        cell = self.grid
-        offset_x = (self.width - 6) // 2
-        offset_y = (self.height - 5) // 2
-        for rel_x, rel_y in self._pattern42:
-            tx: int = offset_x + rel_x
-            ty: int = offset_y + rel_y
-            if (tx == self.entry[0] and ty == self.entry[1] or
-                    tx == self.exit[0] and ty == self.exit[1]):
-                raise Exception(
-                    f'{RED}Entry & Exit must not be in 42 position{END}')
-            cell[ty][tx].static = True
-            cell[ty][tx].visited = True
+        if self.width > 7 and self.height > 5:
+            cell = self.grid
+            offset_x = (self.width - 6) // 2
+            offset_y = (self.height - 5) // 2
+            for rel_x, rel_y in self._pattern42:
+                tx: int = offset_x + rel_x
+                ty: int = offset_y + rel_y
+                if (tx == self.entry[0] and ty == self.entry[1] or
+                        tx == self.exit[0] and ty == self.exit[1]):
+                    raise Exception(
+                        f'{RED}Entry & Exit must not be in 42 position{END}')
+                cell[ty][tx].static = True
+                cell[ty][tx].visited = True
 
     def _animate(self) -> None:
         """Animate the generation of the maze."""

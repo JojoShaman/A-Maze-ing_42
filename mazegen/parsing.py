@@ -1,5 +1,5 @@
-from .colors import RED, END
 from typing import Any
+from typing import Optional
 
 
 class Parsing():
@@ -19,11 +19,11 @@ class Parsing():
         self._width: int = 0
         self._height: int = 0
         self._entry: tuple[int, int] = (0, 0)
-        self._exit: tuple[int, int] = (0, 0)
+        self._exit: tuple[int, int] = (1, 1)
         self._output_file: str = ""
         self._perfect: bool = False
         self._algorithm: str = ""
-        self._seed: int = 0
+        self._seed: Optional[None | int] = None
 
     def parse(self, file: str) -> None:
         """Parse the configuration file parameters with error management.
@@ -35,45 +35,45 @@ class Parsing():
             content = f.read()
         lines: list[str] = [line for line in content.splitlines() if
                             line.strip() and not line.startswith('#')]
-        p: dict[str, str] = {key: value for key, value in
+        p: dict[str, str] = {key.upper(): value for key, value in
                              (line.split('=')for line in lines)}
         try:
             self._width = int(p['WIDTH'])
             if self._width < 0:
                 errors.append(ValueError('width should not be negative'))
-            if self._width < 7:
-                raise Exception(
-                    f"{RED}Error: Maze size too small for '42' pattern.{END}")
         except ValueError as e:
             errors.append(e)
         try:
             self._height = int(p['HEIGHT'])
             if self._height < 0:
                 errors.append(ValueError('height should not be negative'))
-            if self._height < 5:
-                raise Exception(
-                    f"{RED}Error: Maze size too small for '42' pattern.{END}")
         except ValueError as e:
             errors.append(e)
         try:
             x, y = (int(pos) for pos in p['ENTRY'].split(','))
-            if (x >= 0 and x < self._width) and (y >= 0 and y < self._height):
-                self._entry = (x, y)
-            else:
-                errors.append(
-                    ValueError('entry coordinates are out of bounds'))
+            if self._width and self._height:
+                if ((x >= 0 and x < self._width) and
+                        (y >= 0 and y < self._height)):
+                    self._entry = (x, y)
+                else:
+                    errors.append(
+                        ValueError('entry coordinates are out of bounds'))
         except ValueError as e:
             errors.append(e)
         try:
             x, y = (int(pos) for pos in p['EXIT'].split(','))
-            if ((x >= 0 and x < self._width) and
-                    (y >= 0 and y < self._height)):
-                self._exit = (x, y)
-            else:
-                errors.append(
-                    ValueError('exit coordinates are out of bounds'))
+            if self._width and self._height:
+                if ((x >= 0 and x < self._width) and
+                        (y >= 0 and y < self._height)):
+                    self._exit = (x, y)
+                else:
+                    errors.append(
+                        ValueError('exit coordinates are out of bounds'))
         except ValueError as e:
             errors.append(e)
+        if self._entry and self._exit:
+            if self._entry == self._exit:
+                errors.append(ValueError('entry and exit must be different'))
         self._output_file = p['OUTPUT_FILE']
         if p['PERFECT'] == 'True' or p['PERFECT'] == 'False':
             self._perfect = p['PERFECT'] == 'True'
@@ -83,7 +83,7 @@ class Parsing():
         if p['ALGORITHM'] == 'dfs' or p['ALGORITHM'] == 'prim':
             self._algorithm = p['ALGORITHM']
         else:
-            errors.append(f"Error: {p['ALGORITHM']} algorithm not found")
+            errors.append(ValueError(f"{p['ALGORITHM']} algorithm not found"))
         if p.get('SEED'):
             try:
                 self._seed = int(p['SEED'])

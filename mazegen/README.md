@@ -18,21 +18,27 @@ Requires Python 3.10+. No external runtime dependencies.
 The generator is configured from a text file. `Parsing` reads it; the resulting object is passed to `MazeGenerator`.
 
 ```python
-from mazegen import Parsing, MazeGenerator, save, hex
+from mazegen import Parsing, MazeGenerator, save
 
 config = Parsing()
 config.parse("config.txt")
 
 maze = MazeGenerator(config)
-maze.generate()      # carves the grid, applies imperfection, computes the path
+maze.generate()      # carves the grid, applies imperfection, computes the path,
+                      # and automatically writes the hexadecimal grid to OUTPUT_FILE
 
-save(maze)            # plain-text render -> config's OUTPUT_FILE
-hex(maze)             # hexadecimal representation instead
+save(maze)            # optional: also write the plain-text render to OUTPUT_FILE
 ```
+
+`generate()` writes the hexadecimal export itself every time it runs (including
+regenerations), so `OUTPUT_FILE` is always in sync with the maze currently in
+memory. Calling `hex(maze)` (see below) by hand is only needed to re-save on
+demand — e.g. after changing something without calling `generate()` again.
 
 ### Configuration file format
 
-One `KEY=VALUE` pair per line (blank lines and `#` comments ignored):
+One `KEY=VALUE` pair per line (blank lines and `#` comments ignored, keys are
+case-insensitive):
 
 ```
 WIDTH=15
@@ -45,16 +51,21 @@ ALGORITHM=dfs
 SEED=42
 ```
 
-| Key                | Meaning                                       |
-| ------------------ | --------------------------------------------- |
-| `WIDTH` / `HEIGHT` | grid size — min 7×5 (for the "42" pattern)    |
-| `ENTRY` / `EXIT`   | `x,y` coordinates, must lie inside the grid   |
-| `OUTPUT_FILE`      | default output filename                       |
-| `PERFECT`          | `True` = single path, `False` = loops allowed |
-| `ALGORITHM`        | `dfs` or `prim`                               |
-| `SEED`             | optional, for a reproducible maze             |
+| Key                | Meaning                                                 |
+| ------------------ | ------------------------------------------------------- |
+| `WIDTH` / `HEIGHT` | grid size                                               |
+| `ENTRY` / `EXIT`   | `x,y` coordinates, must lie inside the grid, and differ |
+| `OUTPUT_FILE`      | default output filename                                 |
+| `PERFECT`          | `True` = single path, `False` = loops allowed           |
+| `ALGORITHM`        | `dfs` or `prim`                                         |
+| `SEED`             | optional, for a reproducible maze                       |
 
 `parse()` collects every invalid value instead of stopping at the first one, and raises a single `Exception` listing them all.
+
+The "42" pattern is 7 columns by 5 rows, so it only fits — without entry/exit
+colliding with it — once the maze is **strictly larger than 7×5** (8×6 or
+above). At 7×5 or smaller, `MazeGenerator` skips the pattern and prints a
+message on the console, but the maze itself still generates normally.
 
 ## Accessing the maze
 
@@ -83,12 +94,12 @@ render(maze)              # colors the grid with the active theme
 print(display(maze))      # visual representation as a string
 
 save(maze)                # plain-text rendering -> maze.output_file
-hex(maze)                 # hex grid + entry/exit + path directions
+hex(maze)                 # re-write the hex grid + entry/exit + path directions
 
 game.play(maze)           # interactive play with the arrow keys
 ```
 
-`render()` flags: `ansi=0` for no color codes (used by `save()`), `update=True` skips the path animation. `maze._g_mode` sets the difficulty (`'easy'` allows backtracking, `'hard'` doesn't and ends the game if no move is left).
+`render()` flags: `ansi=0` for no color codes (used by `save()`), `update=True` skips the path animation. `hex()` takes an `auto_save: bool = True` flag: when `True` (the default, and what `generate()` uses internally) it writes silently; pass `auto_save=False` to also print the "file saved" confirmation, e.g. after a manual save triggered from a menu. `maze._g_mode` sets the difficulty (`'easy'` allows backtracking, `'hard'` doesn't and ends the game if no move is left).
 
 ## Themes & menu
 

@@ -9,9 +9,10 @@ _This project has been created as part of the 42 curriculum by srosu, njunaidi._
 From a configuration file, the program generates a maze — either **perfect**
 (one unique path) or the default **imperfect** mode (a Pac-Man-playable board:
 full connectivity, open corners/center, at least two independent routes, rare
-dead-ends) — draws a **"42"** pattern in the center, finds the **shortest path**
-with BFS, renders it in the terminal with ANSI colors through an interactive
-menu, exports it (plain text or hexadecimal), and can be played as a mini-game.
+dead-ends) — draws a **"42"** pattern in the center (when the maze is large
+enough for it), finds the **shortest path** with BFS, renders it in the
+terminal with ANSI colors through an interactive menu, exports it (plain text
+or hexadecimal), and can be played as a mini-game.
 
 The generation logic lives in a standalone, pip-installable package
 (`mazegen`) so it can be reused by future projects.
@@ -66,8 +67,8 @@ q      quit
 One `KEY=VALUE` pair per line; lines starting with `#` are ignored.
 
 ```
-WIDTH=20            # columns, min 7
-HEIGHT=15           # rows, min 5
+WIDTH=20            # columns
+HEIGHT=15           # rows
 ENTRY=0,0           # x,y — must be inside the maze
 EXIT=19,14          # x,y — must differ from ENTRY
 OUTPUT_FILE=maze.txt
@@ -78,6 +79,12 @@ ALGORITHM=dfs       # dfs or prim
 
 All keys are mandatory except `SEED`. The parser validates every value and
 reports **all** the errors found at once, not just the first one.
+
+The "42" pattern itself is exactly 7 columns by 5 rows, so it only fits with
+room to spare — without entry/exit colliding with it — once the maze is
+**strictly larger than 7×5** (8×6 or above). At 7×5 or smaller, the pattern is
+skipped and a message is printed on the console, but the maze is still
+generated normally.
 
 ## Output file format
 
@@ -92,6 +99,8 @@ One hexadecimal digit per cell, one bit per closed wall:
 
 Cells are written row by row. After an empty line, three more lines follow:
 entry coordinates, exit coordinates, and the shortest path as `N`/`E`/`S`/`W`.
+This file is written automatically every time a maze is generated (including
+regenerations), not just on the first run.
 
 ## Maze generation algorithm
 

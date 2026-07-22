@@ -113,7 +113,7 @@ def run() -> None:
                 render(maze=maze, update=True)
                 print(display(maze))
             elif command == '5':
-                hex(maze=maze)
+                hex(maze=maze, auto_save=False)
                 system('clear')
                 render(maze=maze, update=True)
                 print(display(maze))
