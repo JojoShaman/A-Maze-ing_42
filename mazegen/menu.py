@@ -82,8 +82,8 @@ def user(maze: MazeGenerator,
     print(f'{s}┃{s}{nb}6{s}{colo}Game{space * 19}┃')
     print(f'{s}┃{s}{nb}7{s}{colo}{animation} ' +
           f'animation{space * 5 if maze._animation else space * 6}┃')
-    print(f'{s}┃{s}{nb}8{s}{colo}Make {is_perfect}{
-        space * 9 if maze.perfect else space * 11}┃')
+    print(f'{s}┃{s}{nb}8{s}{colo}Make {is_perfect}'
+          f'{space * 9 if maze.perfect else space * 11}┃')
     print(f'{s}┃{space * 32}┃')
     print(f'{s}┃{s}{nb}q{s}{colo}quit{space * 19}┃')
     print(f'{s}┃{space * 32}┃')
